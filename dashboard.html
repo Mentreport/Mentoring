@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Mentoring</title>
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F4F3EF; --surface:#FCFCFB; --surface2:#F0EFEB; --line:#E2E0DA; --line2:#ECEBE6;
+  --ink:#1D2125; --ink2:#50585F; --ink3:#80878D;
+  --brand:#F2B705; --brand-ink:#151312; --brand-deep:#8A6A00;
+  --obs:#3F7FB5; --men:#C98A00;
+  --o-prod:#2E9E6B; --o-safe:#D98A2B; --o-mach:#C9465A; --o-fuel:#3B8FC4;
+  --good:#2E8B57; --warn:#B7791F; --bad:#C0392B;
+  --shadow:0 1px 2px rgba(20,20,20,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#12161A; --surface:#1B2126; --surface2:#222A31; --line:#2E383F; --line2:#262F36;
+    --ink:#ECEEEF; --ink2:#B4BDC4; --ink3:#8F9BA6;
+    --brand-deep:#F2B705;
+    --obs:#4F8FC4; --men:#B5840F;
+    --o-prod:#3A9A6C; --o-safe:#B5782A; --o-mach:#D4546E; --o-fuel:#4A8FC0;
+    --good:#4CC38A; --warn:#E0A64A; --bad:#EE7A6E;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#12161A; --surface:#1B2126; --surface2:#222A31; --line:#2E383F; --line2:#262F36;
+  --ink:#ECEEEF; --ink2:#B4BDC4; --ink3:#8F9BA6;
+  --brand-deep:#F2B705;
+  --obs:#4F8FC4; --men:#B5840F;
+  --o-prod:#3A9A6C; --o-safe:#B5782A; --o-mach:#D4546E; --o-fuel:#4A8FC0;
+  --good:#4CC38A; --warn:#E0A64A; --bad:#EE7A6E;
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+header{background:var(--surface); border-bottom:3px solid var(--brand); padding:14px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; position:sticky; top:0; z-index:20;}
+header h1{font-size:18px; margin:0; letter-spacing:.2px;}
+header .src{font-size:12px; color:var(--ink3);}
+header .grow{flex:1;}
+.btn{border:1px solid var(--line); background:var(--surface); color:var(--ink); padding:8px 13px; border-radius:9px; font:inherit; font-weight:600; cursor:pointer; white-space:nowrap;}
+.btn:hover{background:var(--surface2);}
+.btn.primary{background:var(--brand); border-color:var(--brand); color:var(--brand-ink);}
+.btn.sm{padding:5px 10px; font-size:12.5px;}
+.btn:disabled{opacity:.5; cursor:default;}
+main{max-width:1320px; margin:0 auto; padding:18px 24px 60px;}
+.filters{display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:16px;}
+.filters .f{display:flex; flex-direction:column; gap:4px;}
+.filters label{font-size:11px; font-weight:700; color:var(--ink3); text-transform:uppercase; letter-spacing:.04em;}
+.filters select,.filters input{background:var(--surface2); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:7px 9px; font:inherit; min-width:120px;}
+.filters .f.search input{min-width:190px;}
+.kpis{display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:16px;}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+.kpi .l{font-size:12px; color:var(--ink2); font-weight:600;}
+.kpi .v{font-size:28px; font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums;}
+.kpi .s{font-size:12px; color:var(--ink3);}
+.kpi .s b.up{color:var(--good);} .kpi .s b.dn{color:var(--bad);}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; min-width:0;}
+.panel h2{font-size:15px; margin:0 0 2px;}
+.panel .sub{font-size:12px; color:var(--ink3); margin-bottom:12px;}
+.panel-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+.legend{display:flex; gap:14px; font-size:12px; color:var(--ink2); margin-bottom:8px;}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+svg text{fill:var(--ink2); font-size:11px;}
+svg .grid{stroke:var(--line2); stroke-width:1;}
+svg .axis{stroke:var(--line);}
+.tip{position:fixed; pointer-events:none; background:var(--ink); color:var(--surface); padding:7px 10px; border-radius:8px; font-size:12px; z-index:100; opacity:0; transition:opacity .08s; max-width:280px; box-shadow:0 6px 18px rgba(0,0,0,.2);}
+.tip.show{opacity:1;}
+.tip b{font-weight:700;}
+table.t{width:100%; border-collapse:collapse; font-size:13px;}
+table.t th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink3); font-weight:700; padding:7px 8px; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; white-space:nowrap;}
+table.t th.num,table.t td.num{text-align:right; font-variant-numeric:tabular-nums;}
+table.t td{padding:7px 8px; border-bottom:1px solid var(--line2); vertical-align:middle;}
+table.t tr.click{cursor:pointer;} table.t tr.click:hover td{background:var(--surface2);}
+.scroll{overflow-x:auto;}
+.bar-cell{display:flex; align-items:center; gap:8px; justify-content:flex-end;}
+.mini{width:70px; height:6px; background:var(--surface2); border-radius:3px; overflow:hidden;}
+.mini>span{display:block; height:100%; border-radius:3px;}
+.pill{display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface2); color:var(--ink2);}
+.pill.bad{color:var(--bad);} .pill.warn{color:var(--warn);} .pill.good{color:var(--good);}
+.dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px;}
+.empty{padding:36px; text-align:center; color:var(--ink3);}
+.pager{display:flex; gap:8px; align-items:center; justify-content:flex-end; margin-top:10px; font-size:12px; color:var(--ink3);}
+.modal-bg{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-start; justify-content:center; z-index:50; overflow-y:auto; padding:40px 16px;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--surface); border-radius:14px; width:100%; max-width:760px; padding:20px 22px; border:1px solid var(--line);}
+.modal h3{margin:0 0 4px; font-size:18px;}
+.modal .field{margin-bottom:12px;}
+.modal .field label{display:block; font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:4px;}
+.modal .field input{width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:9px 10px; font:inherit;}
+.row-btns{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+.notice{background:var(--surface); border:1px dashed var(--brand-deep); border-radius:12px; padding:16px 18px; margin-bottom:16px;}
+.notice b{color:var(--brand-deep);}
+.ckgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.ck h4{margin:0 0 6px; font-size:13px; display:flex; justify-content:space-between;}
+.ck .it{display:flex; gap:8px; font-size:12px; padding:4px 0; border-top:1px solid var(--line2); align-items:center;}
+.ck .it span.t{flex:1;}
+.yt{font-size:10px; font-weight:800; padding:2px 6px; border-radius:999px;}
+.yt.y{background:rgba(46,139,87,.14); color:var(--good);} .yt.n{background:rgba(192,57,43,.13); color:var(--bad);}
+.evi-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:14px;}
+.evi-box{width:180px;}
+.evi-box .img{width:180px; height:180px; border-radius:10px; border:1px solid var(--line); background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--ink3); overflow:hidden; text-align:center; padding:6px;}
+.evi-box img{width:100%; height:100%; object-fit:cover; display:block;}
+.evi-box .cap{font-size:11px; color:var(--ink3); margin-top:4px;}
+.toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--surface); padding:10px 16px; border-radius:10px; font-size:13px; opacity:0; transition:opacity .2s; z-index:120; pointer-events:none;}
+.toast.show{opacity:1;}
+.spin{display:inline-block; width:12px; height:12px; border:2px solid var(--ink3); border-top-color:transparent; border-radius:50%; animation:sp 0.8s linear infinite; vertical-align:-2px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,1fr);} }
+@media (max-width:820px){
+  .grid2{grid-template-columns:1fr;} .ckgrid{grid-template-columns:1fr;}
+  header,main{padding-left:16px; padding-right:16px;}
+  .kpis{grid-template-columns:repeat(2,1fr);}
+  .filters .f{flex:1 1 140px;} .filters select,.filters input{min-width:0; width:100%;}
+}
+@media print{
+  header .btn, .filters, .no-print{display:none !important;}
+  body{background:#fff;} .panel,.kpi{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Dashboard Mentoring Operator</h1>
+    <div class="src" id="srcLabel">Belum terhubung</div>
+  </div>
+  <div class="grow"></div>
+  <button class="btn" id="reloadBtn">&#8635; Muat ulang</button>
+  <button class="btn" id="exportBtn">Ekspor</button>
+  <button class="btn" id="settingsBtn">Pengaturan</button>
+</header>
+
+<main>
+  <div class="notice" id="setupNotice" style="display:none;">
+    <b>Belum terhubung ke pusat data.</b> Buka <a href="#" id="openSettingsLink">Pengaturan</a> dan isi URL + kode akses Google Apps Script.
+    Ingin melihat contoh dulu? <a href="#" id="demoLink">Tampilkan data contoh</a>.
+  </div>
+
+  <div class="filters" id="filters">
+    <div class="f"><label>Periode</label>
+      <select id="fPreset">
+        <option value="this_month">Bulan ini</option>
+        <option value="last_month">Bulan lalu</option>
+        <option value="4w">4 minggu terakhir</option>
+        <option value="12w" selected>12 minggu terakhir</option>
+        <option value="ytd">Tahun ini</option>
+        <option value="custom">Pilih tanggal...</option>
+      </select></div>
+    <div class="f" id="fCustom" style="display:none; flex-direction:row; gap:6px;">
+      <div class="f"><label>Dari</label><input type="date" id="fFrom"></div>
+      <div class="f"><label>Sampai</label><input type="date" id="fTo"></div>
+    </div>
+    <div class="f"><label>Site</label><select id="fSite"></select></div>
+    <div class="f"><label>Trainer</label><select id="fTrainer"></select></div>
+    <div class="f"><label>Kategori unit</label><select id="fUnitCat"></select></div>
+    <div class="f"><label>Mentoring</label><select id="fCat"><option value="">Semua</option><option>OFM</option><option>ICM</option></select></div>
+    <div class="f search"><label>Cari operator / unit</label><input type="text" id="fSearch" placeholder="Nama, NIK, kode unit"></div>
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Jumlah sesi per minggu</h2>
+      <div class="sub">Aktivitas mentoring seluruh trainer sesuai filter</div>
+      <div id="chWeekly"></div>
+    </div>
+    <div class="panel">
+      <h2>Skor rata-rata per minggu</h2>
+      <div class="sub">Observasi (kondisi awal) vs Mentoring (setelah diarahkan), skala 0-100</div>
+      <div class="legend"><span><i style="background:var(--obs)"></i>Observasi</span><span><i style="background:var(--men)"></i>Mentoring</span></div>
+      <div id="chTrend"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Gap competency per objective</h2>
+      <div class="sub">Rata-rata skor seluruh sesi; garis tipis = target 100</div>
+      <div class="legend"><span><i style="background:var(--obs)"></i>Observasi</span><span><i style="background:var(--men)"></i>Mentoring</span></div>
+      <div id="chObj"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div><h2>Temuan terbanyak</h2>
+      <div class="sub">Poin checklist yang paling sering "T" saat observasi, dan berapa persen sudah "Y" setelah mentoring</div></div></div>
+      <div class="scroll" id="tbFindings"></div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px;">
+    <h2>Rekap per trainer</h2>
+    <div class="sub">Klik judul kolom untuk mengurutkan. "Input terakhir" membantu memantau trainer yang belum mengirim data.</div>
+    <div class="scroll" id="tbTrainer"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Rekap per site</h2>
+      <div class="sub">Perbandingan antar lokasi</div>
+      <div class="scroll" id="tbSite"></div>
+    </div>
+    <div class="panel">
+      <h2>Operator perlu perhatian</h2>
+      <div class="sub">Skor observasi rata-rata terendah (minimal 1 sesi)</div>
+      <div class="scroll" id="tbOps"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div><h2>Data sesi mentoring</h2><div class="sub" id="sessSub">Klik baris untuk melihat detail dan mencetak laporan PDF per operator</div></div>
+    </div>
+    <div class="scroll" id="tbSessions"></div>
+  </div>
+</main>
+
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<iframe id="printFrame" style="position:fixed; width:0; height:0; border:0; visibility:hidden;"></iframe>
+<input type="file" id="importFile" accept=".json,application/json" multiple style="display:none;">
+
+<script>
+const CHECKLISTS = {"Hauler":{"Productivity":[{"no":1,"title":"Berusaha optimal dalam meraih target produksi ( Mengoptimalkan kecepatan rata - rata saat traveling )","desc":"Cek dan berikan pemahaman metode analisa kecepatan rata2 : ketahui jarak aktual dengan trip distance, ketahui perkiraan cycletime actual (menit akhir dikurangi menit awal)"},{"no":2,"title":"Penyesuaian tingkat kecepatan dengan kondisi area kerja","desc":"Penyesuaian pedal accelerator ( RPM ) dengan lever transmissi untuk menghindari over running dan transmisi Hunting"},{"no":3,"title":"Metode pengembalian haluan setelah membelok / ditikungan, kaitannya dengan","desc":"Kepahaman tentang superelevasi, Cek dan uji aplikasi retarder, ARC, proses pemindahan transmisi dan metode penggunaan steering"},{"no":4,"title":"Pemahaman terhadap cycle time hauling","desc":"Pemahaman tentang urutan cycle time hauling, dan estimasi rata2 kecepatan aktual"},{"no":5,"title":"Menjaga jarak antrian pada saat diloading point","desc":"Pemahaman terhadap jarak antrian tidak boleh terlalu jauh ( jarak antri 1 kali panjang unit dengan unit yang antri didepannya dan 1,5 dengan unit yang diloading). Mematikan engine bila antrian 3 keatas"},{"no":6,"title":"Memahami kendala dan hambatan saat proses hauling","desc":"Pemahaman dan peringatan untuk melihat permasalahan saat proses traveling, adanya : penyempitan dan perbaikan jalan, bertambahnya persimpangan, jalan bergelombang dan grade jalan tinggi, lokasi rambu yang tidak sesuai."},{"no":7,"title":"Komunikasi efektif kepada pihak terkait","desc":"Pemahaman operator untuk aktif komunikasi ke pengawas dalam menyampaikan laporan kendala diarea kerja, mengingatkan rekan kerja yang demotivasi dan proses pelaporan produksi ditiap jamnya"},{"no":8,"title":"Memahami Teknik manufer dan teknik loading yang efektif dan efisien","desc":"Memperhatikan arah manufer dengan konsisten di area front loading sudah dilakukan dengan benar dan tidak terlalu jauh, Tidak memutar steering dengan aggressive, Menghindari tumpahan material/boulder agar tidak terinjak oleh tyre. Menerapkan metode loading yang sesuai dengan kondisi loading point dengan konsisten (Loading 45ᵒ/90ᵒ, double site, top loading)."}],"Safety Awareness":[{"no":1,"title":"Kesiapan untuk bekerja ( kondisi Kesehatan, fisik dan perlengkapan / penggunaan APD )","desc":"Memastikan kondisi fisik dan kesehatan siap untuk bekerja, Ingatkan penggunaan APD dengan benar konsisten, mengikuti safety talk dan mengisi form fatique monitoring awal shift"},{"no":2,"title":"Penggunaan radio komunikasi saat mengoperasikan unit dan kepedulian terhadap fatigue alarm","desc":"Memastikan chanel radio sesuai dengan area kerja, tetap menjaga kestabilan arah kendaraan, menggunakan radio sesuai dengan peruntukannya, cepat merespon untuk mereset fatigue alarm bila berbunyi."},{"no":3,"title":"Penggunaan sabuk pengaman / safety belt","desc":"memastikan pengecekan kondisi dan fungsi sabuk pengaman dengan baik, menggunakan safety belt setiap unit bergerak."},{"no":4,"title":"Penggunaan klakson dan lampu - lampu","desc":"Peringatkan penggunaan klakson sesuai prosedur, menghidupkan lampu kerja saat unit beroperasi, menggunakan lampu retting saat berbelok atau mendahului, menghidupkan lampu hazard bila kondisi unit rusak."},{"no":5,"title":"Aturan lalu lintas dijalan tambang","desc":"mengerti dan memahami terhadap rambu - rambu yang terpasang diarea kerja, menjaga jarak beriringan, tidak menggunakan kecepatan yang berlebih"},{"no":6,"title":"Menjaga keselamatan saat traveling","desc":"tidak menggunakan kecepatan berlebih ( over speed ), tidak terjadi over running ( saat turunan ), tidak terjadi transmisi hunting saat tanjakan, mengurangi kecepatan dengan retarder, tidak banyak memainkan stering, menjaga jarak beriringan, menjaga jarak roda dengan tanggul"},{"no":7,"title":"Stoping saat akan loading diloading point dan stoping saat akan dumping didumpingan","desc":"memastikan kedua sisi spion kiri dan kanan sebelum mulai pergerakan mundur, menghindari tumpukan material atau boulder, memahami isyarat klakson digger, roda belakang tidak menaiki bench ( dudukan digger ), tidak menggunakan tanggul sebagai stoper."},{"no":8,"title":"Emergency respon pada unit","desc":"memahami tahapan tindakan yang akan dilakukan pada saat terjadi kondisi emergency ( kebakaran unit, kegagalan sistem steering, kegagalan sistem brake, ban meledak ), memahami penggunaan APAR dan Fire supression"}],"Miss Operation":[{"no":1,"title":"Transmisi abuse","desc":"memastikan pada saat memasukkan transmisi maju atau mundur unit harus berhenti ( tidak ada putaran roda ), RPM engine pada posisi low idle."},{"no":2,"title":"Start awal pergerakan","desc":"memastikan start awal pergerakan mulai dari transmisi 1, lever transmisi tidak boleh dari D ( Trans 2 ), menaikan RPM engine secara bertahap tidak boleh langsung menekan accelerator secara full, memahami start awal ditanjakan ( electric drive & Manual )"},{"no":3,"title":"Transmisi Hunting","desc":"memastikan kondisi jalan pada saat jalan menanjak, memyesuaikan pemakaian transmisi dan RPM engine, lock pemakaian transmisi, tidak terjadi up shift dan down shift."},{"no":4,"title":"Engine over running ( Over speed )","desc":"memastikan kondisi jalan pada saat jalan turunan, menyesuaikan pemakaian transmisi dan RPM engine, lock transmisi sesuai dengan kondisi jalan, jaga kecepatan sesuai dengan grafik brake perfomance, gunakan automatis retard ( RSC / ARSC ), RPM engine tidak boleh melebihi RPM untuk Up Shift."},{"no":5,"title":"Netral Coasting","desc":"memastikan kondisi jalan pada saat jalan turunan, menyesuaikan pemakaian transmisi dan RPM engine, lock transmisi sesuai dengan kondisi jalan, jaga kecepatan sesuai dengan grafik brake perfomance, gunakan automatis retard ( RSC / ARSC ), RPM engine tidak boleh melebihi RPM untuk Up Shift."},{"no":6,"title":"Penggunaan service brake","desc":"memastikan service brake hanya digunakan untuk menghentikan unit ( roda ), tidak menggunakan service brake untuk mengurangi atau mempertahankan kecepatan ( Kecuali Ligth Truck )."},{"no":7,"title":"Parking brake dragging","desc":"memastikan mengaktifkan parking brake setelah penggunaan service brake dan unit ( roda ) benar - benar telah berhenti dengan sempurna, tidak dibenarkan mengaktifkan parking brake ketika masih ada pergerakan unit ( roda berputar )."},{"no":8,"title":"Body up warning","desc":"memastikan saat menjalan unit posisi dump body harus float, tidak dibenarkan pada saat unit bergerak sambil menurunkan dump body (vesel)."}],"Fuel Eff":[{"no":1,"title":"Penggunaan power / economy mode","desc":"memastikan menggunakan mode economy pada saat unit kosongan, unit muatan jalan datar, menggunakan mode power bila unit muatan, jalan menanjak."},{"no":2,"title":"Dumping menggunakan RPM lebih dari RPM ideal","desc":"memastikan menggunakan RPM ideal sesuai saran OEM saat dumping, menaikan RPM engine secara bertahap, mengurangi RPM engine setelah 2/3 silinder dump terangkat, tidak memainkan pedal gas."},{"no":3,"title":"Menurunkan dump body dengan menaikan RPM ( kecuali silinder dump double acting )","desc":"memastikan menurunkan dump body saat unit berhenti sempurna, tidak menaikan RPM engine (Single Acting)."},{"no":4,"title":"Kecepatan travel yang konstan ( stabil )","desc":"menjaga kecepatan unit yang konstan bila kondisi jalan baik, tidak memain - mainkan pedal accelerator ( blayer ), menyesuaikan transmisi dan RPM engine yang economis."},{"no":5,"title":"Penggunaan accelerator yang agresif","desc":"menekan pedal accelerator (menaikan rpm engine) secara bertahap, tidak menekan pedal accelerator langsung full."},{"no":6,"title":"Accelerasi ketika braking","desc":"memastikan tidak memainkan pedal accelerator ketika sedang menggunakan brake, menjaga kesesuaian RPM engine dengan pemakaian transmisi."},{"no":7,"title":"Empty stop time ( idle terlalu lama )","desc":"Memastikan idle tidak lebih dari 3 menit, mamatikan engine bila antrian no 3 keatas, mematikan engine apabila menunggu digger atau perbaikan loading point dengan estimasi lebih dari 5 menit"},{"no":8,"title":"Tire Spin ( Slip )","desc":"mengoptimalkan penggunaan ASR/TCS/Difflock, menghindari lokasi yang berpotensi spin berkepanjangan, menginformasikan lokasi spin ke pengawas, mengingatkan oprator WT karena penyiraman berpotensi menyebabkan spin"}]},"Digger":{"Productivity":[{"no":1,"title":"Sudut swing < 90◦","desc":"Sudut swing produktif 45⁰ maksimal 90⁰ untuk mempercepat loading time, operator diger menempatkan hauller dengan posisi 45⁰"},{"no":2,"title":"Loading time","desc":"Memahami cycle time digger, (digging, swing load, dumping, swing empty \"Time\"), berupaya memperpendek cycle time/ pass dan loading time"},{"no":3,"title":"Kerapian front loading/kerapian kedudukan hauler","desc":"Kerapian front loading membantu percepatan manuver hauller, memudahkan proses manuver"},{"no":4,"title":"High bench/ tinggi jenjang","desc":"Penyesuaian tinggi jenjang dengan tipe unit untuk memudahkan bucket terisi dengan maksimal, memperkecil waktu boom up, dan memperpendek tinggi bucket dengan vesel hauller"},{"no":5,"title":"Bucket fill faktor","desc":"Muatan/ isi bucket maksimal menjadikan jumlah passing dan volume sesuai dengan target"},{"no":6,"title":"Secondary work/ pekerjaan tambahan","desc":"Penempatan arah track terhadap posisi digging untuk memperkuat daya cengkeram track dan daya digging yang maksimal serta efisiensi terhadap pergerakan selanjutnya dan mengurrangi aktivitas diluar loading"},{"no":7,"title":"Sudut penggalian/ digging force derajat","desc":"Sudut penetrasi tooth bucket (± 30⁰) untuk memudahkan tooth bekerja dengan sempurna"},{"no":8,"title":"Leveling unit","desc":"Posisi unit yang rata berdampak terhadap sistem kerja attachment yang maksimal"}],"Safety Awareness":[{"no":1,"title":"Kesiapan individu","desc":"Kesehatan jasmani, rohani dipersiapkan sebelum melakukan aktivitas (manajemen fatique) fokus terhadap tugas pekerjaan"},{"no":2,"title":"Check List P2H terisi dengan benar","desc":"Form check list P2H terisi dengan benar dan mewakili kondisi alat kerja dan kondisi alat-alat keselamatan"},{"no":3,"title":"Menggunakan alat komunikasi pada unit sesuai peruntukannya","desc":"Radio komunikasi dipergunakan untuk berkomunikasi yang berkaitan dengan pekerjaan dan informasi maupun intruksi yang berkaitan dengan safety"},{"no":4,"title":"Pekerjaan yang dilakukan sesuai dengan rencana yang di instruksikan","desc":"Dapat memahami intruksi kerja yang didelegasikan dan mampu menterjemahkan dalam aplikasi kerja unit yang aman"},{"no":5,"title":"Mengontrol/ mengidentifikasi potensi bahaya selama mengoperasikan unit","desc":"Menganalisa potensi bahaya dari pekerjaan yang dilakukan dan potensi bahaya yang ada dari proses pekerjaan kerja sebelumnya"},{"no":6,"title":"Tindak lanjut terhadap potensi bahaya","desc":"Menghilangkan potensi-potensi bahaya yang ada dari proses sebelumnya dan menghindari/ mencegah potensi bahaya yang muncul saat proses melakukan pekerjaan"},{"no":7,"title":"Mengoperasikan unit sesuai dengan spesifikasinya","desc":"Mempersiapkan area kerja untuk kerja aman dengan menyesuaikan spesifikasi alat kerja yang dipergunakan pada area tersebut"},{"no":8,"title":"Membuat/ menggunakan alat dan sarana keselamatan","desc":"Membuat tanggul yang diperlukan sesuai dengan fungsinya, memposisikan alat yang tepat sesuai prosedur operasional dan keselamatan pada area-area kerja, serta penggunaan alat bantu kerja yang telah melalui proses assesment (JSEA)"}],"Miss Operation":[{"no":1,"title":"Melakukan inspeksi awal kondisi alat kerja","desc":"Pemeriksaan Perawatan Harian (P2H) dilakukan dengan benar dan temuan sudah tercatat pada checklist dan mengetahui potensi temuan yang dapat menyebabkan kerusakan pada mesin jika tetap dioperasikan"},{"no":2,"title":"Over vibration & over end stroke bump (Operasi yang meyebabkan hentan yang keras pada attachment dan cylinder Hydroulic)","desc":"Melakukan perlambatan ketika mendekati titik bentur antara kuku dan tanah pada prosses digging, memposisikan kuku bucket < 60° dari level surface materiak, pada proses digging aptimalkan proses menyisir dari start dig s/d end dig, memperlambat gerakan cylinder attachment ketika mendekati endstroke"},{"no":3,"title":"Manuver dengan sudut yang tajam/ putar ditempat","desc":"Manuver area yang luas dilakukan dengan bertahan/ smooth (<30°/event), pada area yang sempit dilakukan dengan beberapa kali event (< 60°/event) menyesuaikan kondisi ketahanan material pijak, kontrol posisi track link terhadap bottom roller, idler, sproket, dan top roller."},{"no":4,"title":"Travel over time/ travel component overheat","desc":"Melakukan proses cooling down setelah melakukan travel (sesuai rekomendasi pabrikan) sebelum melanjutkan travel kembali. Menempatkan/memposisikan dudukan track pada bidang rata sepanjang lintasan yang dilaluinya"},{"no":5,"title":"Menjaga kesehatan (life time) komponen under cariage","desc":"Menghindari manuver yang berlebihan, travel dengan dengan waktu yang lama harus melalui proses cooling down, naik/turun bench dengan posisi idler yang tepat, menjaga keraan pijakan track shoe dan menghindari benturan yang berlebih pada track"},{"no":6,"title":"Jack swing & attachment and travel combination","desc":"Meminilkan operasional dengan melakukan jack swing, melakukan manuver beberapa kali untuk menghindari jack swing, merawat secara berkala area dudukan track shoe. Membuat ramp access yang standar untk menghindari penggunaan attachment dan travel saat naik maupun turun dari lereng/becnh"},{"no":7,"title":"Work inclined position/ alat bekerja dengan posisi miring","desc":"Mengusahan posisi alat selalu rata saat beraktifitas, menyiapkan permukaan dudukan track selalu rata, meminilkan pekerjaan dengan posisi alat kerja tidak dalam kondisi rata/miring, hidari overload pada attachment, dan kombinasi attachment dengan track saat naik/turun pada beda tinggi"},{"no":8,"title":"Work pump overload/ bekerja tanpa menyesuaikan antara tenaga alat kerja dengan beban kerja","desc":"Pilih power mode dan work mode sesuai dengan jenis pekerjaan, menghindari pemaksaan alat kerja untuk bekerja di luar kemampuan/ melebihi beban yang direkomendasikan"}],"Fuel Eff":[{"no":1,"title":"Idle engine 3 - 5 menit saat warming up dan shut down engine","desc":"Memanaskan engine sebelum operasi dan mematikan engine tidak lebih dari 5 menit"},{"no":2,"title":"Penggunaan power mode engine dan pilihan mode attachment sesuai beban pekerjaan","desc":"Penyesuaian pekerjaan dengan beban kerja alat, (mode E/S) untuk pekerjaan ringan/pelan, (mode M) untuk pekerjaan sedang, dan (mode P/H) untuk pekerjaan berat"},{"no":3,"title":"Metode kerja yang efektif dan efisien","desc":"Mempercepat cycle time dengan memperkecil sudut swing ke sudut 45°, menjaga tinggi jenjang sesuai tipe alat kerja, dan menghindari pekerjaan berulang"},{"no":4,"title":"Penggunaan Air Conditioner (AC) sesuai prosedure","desc":"Tidak menyalakan AC dengan pintu dan atau jendela pada kabin dalam keadaan terbuka, mematikan AC jika tidak di fungsikan pada kondisi kerja (sekaligus matikan engine)"},{"no":5,"title":"Menjaga Effective Utility engine","desc":"Tidak menghidupkan engine selain untuk aktivitas produksi dan atau untuk support produk"},{"no":6,"title":"Meminilkan overload pada mesin","desc":"Melakukan penetrasi toth bucket dengan cara \"menyisir\" , mengangkat bolder sesuai dengan kapasitas engine, dan mengurangi penggunaan kombinasi attachment dan track yang berlebihan"},{"no":7,"title":"Mengoptimalakan pencapaian produktivity bucket capacity","desc":"Mengisi volume bucket dengan fill factor ± 90%"},{"no":8,"title":"Perduli dengan fuel efficient alat kerja lainnya","desc":"Perduli dengan pekerjaan akses untuk alat produksi dan alat support lainnya"}]},"Dozer":{"Productivity":[{"no":1,"title":"Melakukan pendorongan material secara optimum berdasarkan type Bulldozer yang di gunakan","desc":"Mendorong material secara optimum di sesuaikan dengan material yang di dorong dan kapasitas blade dan tenaga Bulldozer."},{"no":2,"title":"Memposisikan track saat mundur untuk mengambil posisi mendorong material yang tepat dan efektif","desc":"Memposisikan track Bulldozer saat mundur untuk mengambil posisi yang tepat, tidak melakukan pergerakan berkali kali yang mengakibatkan kurang efektif."},{"no":3,"title":"Penyesuaian penggunaan gigi transmisi dan kecepatan sesuai kondisi area kerja","desc":"Penyesuaian penggunaan gigi transmisi dan kecepatan sesuai kondisi area kerja, seperti saat travel unit , bekerja di medan lembek, tebing, dumpingan dsb."},{"no":4,"title":"Pendorongan material ke suatu tempat untuk mengisi/ menimbun tanah","desc":"Pendorongan material ke suatu tempat untuk mengisi / menimbun tanah, tanah di hampar yang rata dan di lakukan pemadatan agar material padat dan stabil."},{"no":5,"title":"Membuat safety berm / windrow dengan rapi, efektif dan sesuai standard","desc":"Membuat safety berm sesuai standard ,safety berm lurus sejajar dengan permukaan dumpingan , tinggi safety berm minimum 3/4 tinggi ban Dump truck terbesar yang beroperasi di area tersebut/ windrow di buat dengan rapi."},{"no":6,"title":"Membersihkan area loading point / haul road / dumping point dengan benar dan efektif","desc":"Melakukan pendorongan material di loading point / dumping point / haul road sesuai urutan pendorongan dan tidak mengganggu proses manuver dump truck untuk mengambil posisi mundur di alat muat maupun memposisikan mundur ke safety berm di dumpingan."},{"no":7,"title":"Komunikasi efektif dengan pengawas dan rekan kerja","desc":"Pemahaman operator untuk aktif komunikasi ke pengawas dalam menyampaikan laporan kendala diarea kerja, mengingatkan rekan kerja untuk konsisten menjaga keselamatan dan pencapaian target productivity ."},{"no":8,"title":"Bulldozer di alokasikan pada area yang tetap","desc":"Tidak melakukan pekerjaan berpindah pindah tempat yang mengakibatkan Bulldozer kehilangan waktu karena banyak melakukan travel."}],"Safety Awareness":[{"no":1,"title":"Menggunakan APD standard yang di persyaratkan oleh perusahaan","desc":"Menggunakan APD Standard ( Safeth Helmet, safety vest/ baju bereflektor, Safety Glasess, Safety Shoess, dan mengingatkan untuk selalu menggunakan APD tersebut."},{"no":2,"title":"Memahami dan mengaplikasikan penggunaan klakson dan lampu - lampu saat mengoperasiakn Bulldozer","desc":"Peringatkan penggunaan klakson 1X saat akan menghidupkan engine, Klakson 2X saat akan menjalankan kendaraan, Klakson3X saat akan memundurkan kendaraan dan menyalakan lampu - lampu saat Bulldozer beroperasi."},{"no":3,"title":"Memahami area blid spot pada Bulldozer dan selalu waspada saat beroperasi","desc":"Mengingatkan dan menjelaskan bahayanya blind spot pada Bulldozer untuk selalu waspada keadaan di sekitar Bulldozer saat beroperasi, pastikan melihat depan, kiri dan kanan , serta menoleh ke belakang untuk memastikan unit aman untuk bergerak maju ataupun mundur."},{"no":4,"title":"Menggunakan sabuk pengaman saat mengoperasikan Bulldozer","desc":"Melakukan pengechekan kondisi sabuk pengaman dan fungsinya, menggunakan sabuk pengaman saat mengoperasikan Bulldozer,"},{"no":5,"title":"Menggerakkan steering dengan gerakan yang halus dan efektif","desc":"Pengoperasian steering di lakukan dengan halus dan efektif , aman untuk beroperasi dan hasil kerja yang rapi dan maksimal."},{"no":6,"title":"Melakukan P2H unit Bulldozer dan di tulis pada form P2H","desc":"Melakukan pengechekan P2H yang di lakukan oleh operator dan mengingatkan agar P2H dilakukan dengan teliti dan di tulis pada form P2H serta melaporkan jika ada kerusakan yang harus di tindak lanjuti oleh pihak Maintenance. Operator memahami ada 3 jenis kerusakan pada unit yang tidak boleh di operasikan yaitu kerusakan pada rem, safety belt dan steering (check P2H dan wawancara)."},{"no":7,"title":"Penggunaan radio komunikasi saat mengoperasikan Bulldozer","desc":"Memastikan chanel radio sesuai dengan area kerja,menggunakan radio komunikasi sesuai dengan peruntukannya dan memahami pelaporan melalui radio saat dalam keadaan darurat."},{"no":8,"title":"Memahami emergency respons pada unit Bulldozer","desc":"Memastikan operator telah memahami tindakan apabila ada kondisi darurat seperti kebakaran, kegagalan steering dan rem."}],"Miss Operation":[{"no":1,"title":"Setelah menghidupkan dan akan mematikan engine melakukan idle engine terlebih dahulu","desc":"Lakukan idle unit 3-5 menit setelah engine hidup atau sebelum engine di matikan agar tidak merusak pada turbo Charger (Untuk memastikan bisa dengan pertanyaan ke operator)."},{"no":2,"title":"Memutar track bulldozer dengan halus , tepat dan efektif","desc":"Putarlah track Bulldozer dengan dengan halus, tepat dan efektif untuk menjaga pad Bulldozer rata, tepat pada area yang akan di dorong dan dengan waktu yang lebih efektif untuk melakukan pekerjaan."},{"no":3,"title":"Mendorong material menggunakan gigi transmisi yang sesuai","desc":"Gunakan gigi yang sesuai saat melakukan pendorongan material disesuaikan dengan beban material yang di dorong dan kondisi landasan Bulldozer, kapasitas dan tenaga Bulldozer yang di gunakan."},{"no":4,"title":"Menghampar material hanya di lakukan dengan mendorong material","desc":"Lakukan penghamparan material dengan cara mendorong material dan jangan menghampar material dengan menarik blade kebelakang karena hal ini akan menyebabkan kerusakan pada Lift Cylinder blade dan komponen lainnya."},{"no":5,"title":"Menaikkan dan menurunkan blade dengan halus, tepat dan efektif","desc":"Menaikkan blade saat beroperasi antara 20 -40 cm dari tanah agar pekerjaan efektif dan menurunkan blade dengan halus dan tepat agar pekerjaan efektif dan tidak merusak pada komponen Lift Cylinder Blade dan Trunion."},{"no":6,"title":"Melakukan pekerjaan dengan menggunakan gigi dan steering yang sesuai dan benar","desc":"Pada saat melakukan pekerjaan mengunakan gigi yand sesuai dan jangan membelokkan steering dengan agresif agar aman dan mendapatkan hasil yang maksimal."},{"no":7,"title":"Mengoperasikan Buldozer dengan menghindari melangkahi Boulder dan masuk pada area lembek / lumpur","desc":"Saat mengoperasikan Bulldozer pastikan tidak melangkahi material Boulder yang berpotensi menyangkut pada bagian bawah Bulldozer dan memasuki materail lembek / atau lumpur yang bisa mengakibatkan unit Bulldozer amblas atau bahkan tenggelam."},{"no":8,"title":"Pemilihan dan pemindahan gigi dari maju ke mundur atau dari mundur ke maju dengan benar","desc":"Operasikan dozer dengan pergantian gigi transmisi dari maju ke mundur atau dari mundur ke maju, pastikan gigi transmisi di posisi netral terlebih dahulu baru pindahkan gigi transmisi maju atau mundur agar tidak terjadi transmission abuse."}],"Fuel Eff":[{"no":1,"title":"Mendorong material menggunakan gigi transmisi yang tidak sesuai","desc":"Gunakan gigi transmisi yang sesuai saat pendorongan material"},{"no":2,"title":"Bulldozer berhenti dengan kondisi engine hidup saat tidak beroperasi","desc":"Pemahaman tentang pentingnya Bulldozer running hanya saat di gunakan untuk beroperasi, saat unit tidak beroperasi ( tidak di gunakan ) matikan engine"},{"no":3,"title":"Memahami dampak kerugian engine idle terlalu lama ( boros pemakaian bahan bakar )","desc":"Idle unit 3-5 menit setelah unit di hidupkan / saat akan di matikan"},{"no":4,"title":"Kesesuaian antara produktifity dan waktu diperlukan","desc":"Kualitas hasil pekerjaan sesuai target sehingga tidak ada pekerjaan ulang yang akan menambah biaya pemakaian bahan bakar"},{"no":5,"title":"Penggunaan Deccelerator yang agresif","desc":"Pemahaman tentang penggunaan pedal Daccelerator, melepas pedal Deccelerator secara bertahap tidak langsung full"},{"no":6,"title":"Penggunaan air conditioner (AC) sesuai kebutuhan","desc":"Pemahaman tentang penggunaan AC , AC hanya difungsikan ketika melakukan pekerjaan, menutup pintu atau jendela kabin saat AC di aktifkan"},{"no":7,"title":"Jarak Dozing material dengan jarak yang ideal dan efektif","desc":"Pemahaman untuk proses dozing di lakukan dengan jarak yang tidak terlalu jauh di sesuaikan dengan kapasitas kemampuan Bulldozer dan jumlah hauler yang dumping di area tersebut atau pekerjaan dozing di area tertentu."},{"no":8,"title":"Melakukan ripping dengan posisi datar atau menurun","desc":"Pemahaman pada operator Bulldozer dalam melakukan ripping jangan di lakukan dengan posisi menanjak, dan menancapkan shank ripper terlalu dalam, harus di sesuaiakan dengan jenis material dan kemampuan."}]},"Grader":{"Productivity":[{"no":1,"title":"Pemosisian sudut propulsion blade yang tepat","desc":"Sudut propulsion blade optimal di 60 °, pada area tertentu dengan kekerasan material tertentu menyesuaikan sudut propulsion blade antara 45° - 60°"},{"no":2,"title":"Pencapaian Cycle time","desc":"Memahami cycle time motor grader dan mampu memperkirakan waktu yang diperlukan untuk mengerjakan per satu bagian (segment)"},{"no":3,"title":"Kecepatan saat melakukan grading","desc":"Menyesuaikan kecepatan dengan jenis pekerjaan, pekerjaan grading menggunakan gigi transmisi 3-4, saat ripping menggunakan gigi transmisi 1-2 menyesuaikan dengan tingkat kesulitan dan kekerasan material dan mampu menentukan kapan menggunakan ripping dan kapan cukup hanya menggunakan blade saja"},{"no":4,"title":"Mampu menentukan prioritas pekerjaan","desc":"Memprioritaskan pekerjaan pada area yang mengalami kerusakan lebih parah, melakukan ripping (jika diperlukan)untuk meringankan kerja blade"},{"no":5,"title":"Konsistensi perawatan / bentuk jalan","desc":"Menjaga crossfall badan jalan 2% - 4%, Superelevasi maximal 5% ,dan kerataan badan jalan"},{"no":6,"title":"Mengurangi losstime (non produksi)","desc":"Mencari area manuver yang luas untuk memperkecil spotting/ manuver time, parkir di lokasi tertingi/ area parkir yang dipersiapkan untuk pekerjaan slipery setelah hujan"},{"no":7,"title":"Penentuan sudut tilt blade","desc":"Mampu menentukan sudut tilt blade yang diperlukan untuk material keras (≥84°) dan untuk material lunak (≤ 84°)"},{"no":8,"title":"Mampu kelajaran lalulintas pada area kerjanya","desc":"Mampu memperhitungkan kelebaran jalan dengan posisi unitnya pada lintasan untuk memberikan ruang bagi unit produksi dapat berselisihan dengan aman."}],"Safety Awareness":[{"no":1,"title":"Kesiapan Fisik","desc":"Kondisi kesehatan jasmani dan rohani disiapkan sebelum melakukan aktifitas (managemant fatique)fokus terhadap pekerjaan"},{"no":2,"title":"Pemeriksaan dan Perawatan Harian dilakukan dengan benar","desc":"Pengisian form P2H dilakukan sesuai dengan hasil pemeriksaan dan dilaporkan ke pengawas"},{"no":3,"title":"Melakukan Three Point Contact","desc":"Melakukan prosedur menaiki dan menuruni unit dengan kedua tangan memegang tangga,satu kaki untuk tumpuan, Posisi menghadap ke unit"},{"no":4,"title":"Mengoperasikan unit sesuai spesifikasinya","desc":"Melakukan pekerjaan sesuai dengan spesifikasi unit dengan kondisi area"},{"no":5,"title":"Mengidentifikasi potensi bahaya diarea kerja","desc":"Menganalisa potensi bahaya dari area pekerjaan dan menghilangkan potensi bahaya yang ada"},{"no":6,"title":"Menggunakan alat komunikasi sesuai peruntukannya","desc":"Menggunakan radio untuk alat komunikasi pekerjaan dan komunikasi safety"},{"no":7,"title":"Melakukan manuver diarea yang aman","desc":"Perpindahan arah dilakukan diarea yang luas dan dan memberi informasi ke unit lain"},{"no":8,"title":"Emergency Respon","desc":"Pada saat travel menjaga jarak ketinggian blade 10 cm - 20 cm dari permukaan tanah"}],"Miss Operation":[{"no":1,"title":"Inspeksi sebelum start, setelah start, selama operasi dan setelah operasi","desc":"Melakukan pengecekan semua komponen untuk memastikan kelayakan untuk operasi, monitoring keamanan mesin selama operasi, dan pengecekan kembali sebelum meninggalkan alat kerja"},{"no":2,"title":"Abuse Transmisi","desc":"Melakukan prosedur perpindahan gigi dari maju ke mundur dan sebaliknya harus berhenti sempurna terlebih dahulu, perpindahan gigi transmisi sesuai beban kerja untuk mengurangi hentakan/ gerakan kejut"},{"no":3,"title":"Overload pada sisi blade","desc":"Kontrol kerataan beban pada blade dengan cara memberi beban minimal 60% dari panjangblade/ beban yang berada di blade terbagi minimal 60% panjang blade, jika menggunakan pemotongan dengan endblade kedalaman maksimal 20 cm"},{"no":4,"title":"Engine Over Runing","desc":"Menyesuaikan kecepatan dengan pemilihan gigi transmisi yang tepat, melakukan perlambatan dengan service brake sebelum memindahkan ke gigi transmisi yang lebih rendah (RPM gear shift change)"},{"no":5,"title":"Posisi tilt blade terbalik","desc":"Menentukan sudut tilt blade yang diperlukan untuk material keras (≥84°), untuk material lunak (≤ 84°), sudut propulasion juga menyesuaikan beban material pada blade, meminimalkan vibrasi, dan mengurangi keausan cuting blade"},{"no":6,"title":"Penggunaan wheel len angle terbalik","desc":"Wheel lern untuk membantu optimal kerja blade dengan posisi sudut buang material pada blade"},{"no":7,"title":"Ripping dengan arah berbelok","desc":"Arah alat kerja saat melakukan pekerjaan ripping harus selalu lurus dan kedalaman penetrasi tooth ripper disesuaikan dengan tipe kekerasan material dengan pemilihan gigi tramsmisi 1-2 sesuai kekerasan material dan kedalaman penetrasi"},{"no":8,"title":"Aplikasi differential lock bukan peruntukannya","desc":"Tidak boleh mengaktifkan diff. lock pada saat travel dengan kecepatan tinggi dan bermanuver dan diff. lock digunakan pada saat jalan licin, ketika roda memerlukan traksi yang lebih kuat ( saat beban berat, tanjakan/ turunan terjal)"}],"Fuel Eff":[{"no":1,"title":"Idle engine 3 - 5 menit saat warming up dan shut down engine","desc":"Melakukan pemanasan engine sebelum operasi dan mematikan engine tidak lebih dari 5 menit"},{"no":2,"title":"Penggunaan speed dan gigi transmisi yang sesuai","desc":"Pemilihan gigi transmisi yang sesuai dengan pekerjaan yang dilakukan seperti grading, ripping,sloping dll."},{"no":3,"title":"Penempatan alat kerja ketika akan terjadi hujan","desc":"Penempatan alat kerja di posisi tertinggi yang telah disiapkan sebagai tempat parkir untuk memulai pekerjaan slippery"},{"no":4,"title":"Kesesuaian penggunaan RPM dengan pemilihan gigi transmisi","desc":"Menjaga kesetabilan RPM antara 1700 - 2000 RPM"},{"no":5,"title":"Menjaga Effective Utility engine","desc":"Engine running hanya untuk aktivitas pekerjaan"},{"no":6,"title":"Penggunaan air conditioner (AC) sesuai kebutuhan","desc":"AC hanya difungsikan ketika melakukan pekerjaa dan mentup pintu atau jendela kabin saat AC aktif"},{"no":7,"title":"Kesesuaian antara produktifity dan waktu diperlukan","desc":"Kualitas hasil pekerjaan sesuai target sehingga tidak ada pekerjaan ulang dan dapat melanjutkan pekerjaan di segment yang lainnya"},{"no":8,"title":"Peduli dengan efisiensi fuel alat kerja lainnya","desc":"Operator motor grader memahami tugas dan tanggung jawab, untuk membuat akses bagi alat produksi beroperasi dengan lancar tanpa ada beban resisten yang tinggi sehingga fuel konsumsi alat produksi lebih efisien (irit)"}]},"Drill":{"Productivity":[{"no":1,"title":"Pemosisian unit yang tepat","desc":"Pada area tertentu dengan kemiringan lokasi drilling antara 6° - 9° operator harus menggunakan tombol OVERIDE atau BYPASS untuk membantu proses hilangnya pressure dalam ZONA.sehingga pengeboran dapat di lakukan dengan aman"},{"no":2,"title":"Pencapaian Cycle time","desc":"Memahami cycle time drilling dan mampu memperkirakan waktu yang diperlukan untuk pengeboran per lubang per menit. manfaatkan jumlah waktu pengeboran jika lokasi drilling tersedia,"},{"no":3,"title":"Proses dalam melakukan penyambungan pipa atau double rod","desc":"Menyesuaikan kecepatan feed down dan memperhatikan pergerakan sling turun sampai thread tersambung dengan sempurna kekencangannya,dan memastikan carousel sudah tersimpan didalam."},{"no":4,"title":"Mampu menentukan prioritas pekerjaan pengeboran","desc":"Memprioritaskan pekerjaan pada area freeface atau ektra lubang dan area yang mengalami kemiringan mendekati 5 derajat."},{"no":5,"title":"Pengambilan dari titik ke titik(pattern)","desc":"Operator harus mampu meminimalkan posisi mata bor ke titik yang sudah terpasang sesuai dengan master plan yang di desain dari engineering drill and blast"},{"no":6,"title":"Mengurangi loss time (non produksi)","desc":"Kurangi manuver yang berlebihan untuk memperkecil waktu yang terbuang,sehingga didalam proses pengeboran bisa tercapai target produksi"},{"no":7,"title":"Penentuan jenis batuan di area pengeboran","desc":"Mampu menentukan jenis batuan antara batuan keras,batuan sedang dan batuan lunak sehingga bisa mengontrol untuk menyetel tekanan kebawah atau tekanan putarannya."},{"no":8,"title":"Travel dijalur lalu lintas tambang","desc":"Mampu memperhitungkan dengan posisi unitnya pada lintasan untuk memberikan ruang bagi unit produksi dapat berselisihan dengan aman dan mapu berkomunikasi 2 arah lewat radio komunikasi."}],"Safety Awareness":[{"no":1,"title":"Kesiapan Fisik","desc":"Kondisi kesehatan jasmani dan rohani disiapkan sebelum melakukan aktifitas (managemant fatique)fokus terhadap pekerjaan"},{"no":2,"title":"P2H atau prestart check dilakukan dengan benar","desc":"Pengisian form P2H dilakukan sesuai dengan hasil pemeriksaan dan dilaporkan ke pengawas,dilanjut ke PIT CONTROL apabila ada temuan atau kekurangan di unit"},{"no":3,"title":"Menjalankan Three Point Contact","desc":"Melakukan prosedur menaiki dan menuruni unit dengan kedua tangan memegang tangga,satu kaki untuk tumpuan, Posisi menghadap ke unit"},{"no":4,"title":"Mengoperasikan unit sesuai spesifikasinya","desc":"Melakukan pekerjaan sesuai dengan spesifikasi unit dengan kondisi area (EPIROC dan SANDVIK)"},{"no":5,"title":"Mengidentifikasi potensi bahaya diarea kerja","desc":"Mampu dan menganalisa potensi bahaya dari area pekerjaan yang menjadi tanggung jawabnya"},{"no":6,"title":"Menggunakan alat komunikasi sesuai peruntukannya","desc":"Menggunakan radio untuk alat komunikasi pekerjaan dan komunikasi keselamatan"},{"no":7,"title":"Melakukan manuver dalam 1 area","desc":"Perpindahan arah dilakukan diarea yang luas 1 burden atau1spasing dan memberi informasi ke unit lain agar tidak terjadi senggolan"},{"no":8,"title":"Emergency STOP","desc":"Jangan mengoperasikan mesin tanpa memastikan berhenti darurat bekerja Pastikan Anda tahu lokasi TOMBOL EMERGENCY,tombol emergency terletak di Cabin dan di jalur akses utama unit"}],"Miss Operation":[{"no":1,"title":"Inspeksi sebelum start, setelah start, selama operasi dan setelah operasi","desc":"Melakukan pengecekan semua komponen untuk memastikan kelayakan untuk operasi, monitoring keamanan mesin selama operasi, dan pengecekan kembali sebelum meninggalkan alat kerja"},{"no":2,"title":"DRILL dan PROPEL","desc":"Melakukan prosedur perpindahan switch control PENGEBORAN dan TRAVEL atau sebaliknya, jika berhenti atau selesai dalam melakukan pekerjaan posisi switch harus di posisi PROPEL di layar RCS menunjukan simbol P"},{"no":3,"title":"KALIBRASI depth counter","desc":"Lakukan dengan cara turunkan pipa sekitar 80cm-1meter ke bawah, kemudian naikkan lagi sampai mentok keatas. Sehingga warning berwarna kuning HILANG."},{"no":4,"title":"DUST COLLECTOR","desc":"Selalu gunakan dust collector untuk mengontrol debu,membantu proses percepatan pengeboran,debu dapat menyebabkan penyakit serius dan berakibat fatal"},{"no":5,"title":"FIRE SUPPRESSION dan APAR","desc":"Pastikan tabung suppression dan apar dalam kondisi baik, kebocoran FUEL pada komponen panas secara spontan dapat menyebabkan terjadinya unit TERBAKAR"},{"no":6,"title":"TRAMMING pergerakan unit","desc":"Gunakan klakson, harus selalu terdengar sebelum menggerakkan bor ke kedua arah untuk mengingatkan personil dan jangan membiarkan klakson sebelum unit drilling bergerak"},{"no":7,"title":"COLLARING","desc":"Saat melakukan pekerjaan awal pengeboran operator harus melakukan collaring agar pembentukan dinding lubang selalu lurus kedalam dengan menyesuaikan putaran dan tekanan pulldown"},{"no":8,"title":"MENARA atau MAST","desc":"Sebelum menurunkan MENARA DRILL: Pastikan carousel diputar, sehingga tidak ada pipa di posisi \"memuat\". Pipa dapat meluncur kembali dan jatuh dari korsel"}],"Fuel Eff":[{"no":1,"title":"Idle engine 3 - 5 menit saat warming up dan shut down engine","desc":"Melakukan pemanasan engine sebelum operasi dan mematikan engine tidak lebih dari 5 menit"},{"no":2,"title":"Pengukuran identitas lubang","desc":"Operator dan helper drill harus berkomunikasi mengenai hasil pengukuran lubamg,apabila ditemukan pendangkalan atau tidak sesuai target yang ditentukan maka harus di bor ulang"},{"no":3,"title":"Penempatan alat kerja ketika akan terjadi hujan","desc":"Penempatan alat kerja di posisi tertinggi yang tidak berakibat terendamnya unit terutama di area lowest point"},{"no":4,"title":"Kesesuaian penggunaan RPM","desc":"Menjaga kesetabilan RPM antara 1700 - 2000 RPM"},{"no":5,"title":"Menjaga Effective Utility engine","desc":"Engine running hanya untuk aktivitas pekerjaan"},{"no":6,"title":"Penggunaan air conditioner (AC) sesuai kebutuhan","desc":"AC hanya difungsikan ketika melakukan pekerjaan dan menutup pintu kabin saat AC aktif"},{"no":7,"title":"Kesesuaian antara produktifity dan waktu diperlukan","desc":"Kualitas hasil pekerjaan sesuai target sehingga tidak ada pekerjaan ulang dan dapat melanjutkan pekerjaan di segmen berikutnya"},{"no":8,"title":"GOOD HOUSE KEEPING","desc":"KEBERSIHAN unit sangat penting untuk keamanan dan efisiensi dalam melakukan operasional pengeboran, Bor secepat mungkin dan jaga biaya serendah mungkin"}]}};
+const FINDING_LABELS = {"Digger":{"Productivity":{"1":"Sudut Swing","2":"Loading Time","3":"Kerapihan Front","4":"Bench High","5":"Bucket Factor","6":"Secondary Work","7":"Digging Force","8":"Leveling"},"Safety Awareness":{"1":"Kesiapan individu","2":"P2H","3":"komunikasi","4":"Rencana kerja","5":"Potensi Bahaya","6":"Tindak lanjut potensi bahaya","7":"Spesifikasi unit","8":"Sarana keselamatan"},"Miss Operation":{"1":"Inspeksi area","2":"Over endstroke","3":"Manuver","4":"Traveltime","5":"Under carriage","6":"Jack Swing","7":"bekerja dengan posisi miring","8":"Work pump overload"},"Fuel Eff":{"1":"Idle engine 3 - 5 menit","2":"Penggunaan power mode engine","3":"Metode kerja  efektif","4":"Penggunaan Air Conditioner (AC)","5":"Effective Utility engine","6":"overload mesin","7":"Bucket Factor","8":"Kontrol efisiensi fuel"}},"Hauler":{"Productivity":{"1":"Kec Rata2","2":"Kecepetan sesuai medan","3":"Kontrol Haluan","4":"cycle Time","5":"Jarak antrian","6":"Mengatasi hambatan dijalur hauling","7":"Komunikasi","8":"Tehnik manuver"},"Safety Awareness":{"1":"Kondisi fisik","2":"Radio kom","3":"Seat belt","4":"Penggunaan Klakson","5":"Aturan lalu lintas","6":"Keselamatan Travel","7":"Spoting di front dan disposal","8":"Emergency Response"},"Miss Operation":{"1":"Transmisi abuse","2":"Start awal pergerakan","3":"Transmisi Hunting","4":"Engine over running ( Over speed )","5":"Netral Coasting","6":"Penggunaan service brake","7":"Parking brake dragging","8":"Body up warning"},"Fuel Eff":{"1":"Penggunaan power / economy mode","2":"Dumping menggunakan RPM lebih dari RPM ideal","3":"Menurunkan dump body","4":"Kecepatan travel yang konstan","5":"Penggunaan accelerator yang agresif","6":"Accelerasi ketika braking","7":"Empty stop time ( idle terlalu lama )","8":"Tire Spin ( Slip )"}},"Grader":{"Productivity":{"1":"Pemosisian sudut propulsion  blade yang tepat","2":"Pencapaian Cycle time","3":"Kecepatan saat melakukan grading","4":"Mampu menentukan prioritas pekerjaan","5":"Konsistensi perawatan / bentuk jalan","6":"Mengurangi losstime (non produksi)","7":"Penentuan sudut tilt blade","8":"Mampu kelajaran lalulintas pada area kerjanya"},"Safety Awareness":{"1":"Kesiapan Fisik","2":"Pemeriksaan dan Perawatan Harian","3":"Melakukan Three Point Contact","4":"Mengoperasikan unit sesuai spesifikasi","5":"Mengidentifikasi potensi bahaya diarea kerja","6":"Alat komunikasi","7":"Manuver","8":"Emergency Respon"},"Miss Operation":{"1":"Inspeksi Area kerja","2":"Abuse Transmisi","3":"Overload pada sisi blade","4":"Engine Over Runing","5":"Posisi tilt blade terbalik","6":"Penggunaan wheel len","7":"Ripping dengan arah berbelok","8":"Aplikasi differential lock bukan peruntukannya"},"Fuel Eff":{"1":"Idle engine 3 - 5 menit","2":"Penggunaan speed dan gigi transmisi","3":"Penempatan alat kerja ketika akan terjadi hujan","4":"Kesesuaian penggunaan RPM dengan pemilihan gigi transmisi","5":"Menjaga Effective Utility engine","6":"Penggunaan air conditioner (AC) sesuai kebutuhan","7":"Kesesuaian antara produktifity  dan waktu diperlukan","8":"Peduli dengan efisiensi fuel  alat kerja lainnya"}},"Dozer":{"Productivity":{"1":"Pendorongan  material optimum","2":"Posisikan track saat mundur efektif","3":"Penyesuaian transmisi sesuai kondisi area kerja","4":"Pendorongan material untuk menimbun","5":"Membuat safety berm standard","6":"Pembersihan area loading point / haul road /  dumping point","7":"Komunikasi efektif","8":"Penempatan kerja"},"Safety Awareness":{"1":"Penggunaan APD standard","2":"Aplikasikan penggunaan klakson dan lampu","3":"Memahami area blind spot","4":"Menggunakan sabuk pengaman","5":"Steering dengan efektif","6":"P2H","7":"Radio komunikasi","8":"Memahami emergency respons"},"Miss Operation":{"1":"Idle engine sebelum dan sesudah","2":"Manuver track bulldozer tepat dan efektif","3":"Mendorong material dengan transmisi yang  sesuai","4":"Menghampar material efektif","5":"Menaikkan dan menurunkan blade efektif","6":"Penggunaa gigi dan steering yang sesuai dan benar","7":"Penanganan Boulder dan area lembek / lumpur","8":"Pemilihan dan pemindahan gigi  dengan benar"},"Fuel Eff":{"1":"Mendorong material dengan transmisi sesuai","2":"Mematikam engine saat tidak beroperasi","3":"Memahami dampak kerugian engine idle terlalu lama","4":"Produktifitas sesuai dengan jam kerja","5":"Penggunaan Deccelerator yang tidak agresif","6":"Penggunaan air conditioner (AC)","7":"Jarak Dozing material ideal dan efektif","8":"Melakukan ripping dengan posisi datar"}}};
+
+// case-insensitive lookup, since unit category casing differs across sites
+// (e.g. BCP: "Hauler" vs ACP/KCP: "HAULER")
+const CHECKLISTS_NORM = {};
+Object.keys(CHECKLISTS).forEach(k=>{ CHECKLISTS_NORM[k.trim().toUpperCase()] = CHECKLISTS[k]; });
+function getChecklistForCat(cat){
+  if(!cat) return null;
+  return CHECKLISTS_NORM[String(cat).trim().toUpperCase()] || null;
+}
+const FINDING_LABELS_NORM = {};
+Object.keys(FINDING_LABELS).forEach(k=>{ FINDING_LABELS_NORM[k.trim().toUpperCase()] = FINDING_LABELS[k]; });
+// Standardized short "Finding" label for a checklist point (from Table_Finding master),
+// falling back to the point's own title if this unit category/point isn't in that table.
+function getFindingLabel(unitCat, objectiveKey, itemNo, fallbackTitle){
+  const catMap = FINDING_LABELS_NORM[String(unitCat||'').trim().toUpperCase()];
+  const label = catMap && catMap[objectiveKey] && catMap[objectiveKey][itemNo];
+  return label || fallbackTitle || '';
+}
+const OBJECTIVES = [
+  {key:'Productivity', label:'Productivity', color:'#3FB27F'},
+  {key:'Safety Awareness', label:'Safety Awareness', color:'#E0983E'},
+  {key:'Miss Operation', label:'Machine Health', color:'#D95C5C'},
+  {key:'Fuel Eff', label:'Fuel Efficiency', color:'#4EA1D3'}
+];
+// Display label for an objective's internal key (the key itself stays as the
+// original data value used in CHECKLISTS/exports, e.g. "Miss Operation").
+function objLabel(key){
+  const found = OBJECTIVES.find(o=>o.key===key);
+  return found ? found.label : key;
+}
+
+/* ---------- CSV export + share ---------- */
+const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function weekNum2(d){
+  const jan1 = new Date(d.getFullYear(),0,1);
+  const jan1Offset = (jan1.getDay()+6)%7; // 0=Mon..6=Sun
+  const dayOfYear = Math.floor((d - jan1)/86400000);
+  return Math.floor((dayOfYear + jan1Offset)/7)+1;
+}
+function csvEscape(v){
+  v = (v===undefined||v===null) ? '' : String(v);
+  if(/[",\n]/.test(v)) v = '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+function buildRows(sessions){
+  // Exact same 60 columns & order as the "Input Table" sheet in the master Excel,
+  // so this can be block-pasted straight into the bottom of that table.
+  const cols = ['DATE','WEEK','MONTH','SITE','NIK','OPERATOR','STATUS','NIK TRAINER','TRAINER','MENTORING CAT',
+    'UNIT CODE','UNIT TYPE','UNIT CAT','UNIT CLASS','IMPROVEMENT OBJECTIVE','PLAN HOUR','ACT HOUR','TARGET POINT',
+    'P1','P2','P3','P4','P5','P6','P7','P8',
+    'S1','S2','S3','S4','S5','S6','S7','S8',
+    'M1','M2','M3','M4','M5','M6','M7','M8',
+    'F1','F2','F3','F4','F5','F6','F7','F8',
+    'OBSERVE POINT','MENTORING POINT','TOTAL EVENT','AVG OBSERVE POINT','AVG MENTORING POINT',
+    'Req Score','Req Score Observ','Req Score Mentoring','Finding','Year'];
+  const OBJ_PREFIX = {'Productivity':'P','Safety Awareness':'S','Miss Operation':'M','Fuel Eff':'F'};
+  const rows = [];
+  sessions.forEach(s=>{
+    const d = new Date(s.date+'T00:00:00');
+    const week = weekNum2(d);
+    const month = MONTH_ABBR[d.getMonth()]+' '+String(d.getFullYear()).slice(2);
+    const year = d.getFullYear();
+    s.objectives.forEach(o=>{
+      // Build the 32 P1-P8/S1-S8/M1-M8/F1-F8 cells: only this row's own objective
+      // gets its 8 cells filled (with the Observasi Y/T per item), the other 24 stay blank
+      // -- matches the original sheet's per-row-per-objective layout.
+      const prefix = OBJ_PREFIX[o.key];
+      const groups = ['P','S','M','F'];
+      const cells32 = [];
+      groups.forEach(g=>{
+        for(let n=1;n<=8;n++){
+          if(g===prefix && o.mode==='checklist'){
+            const it = o.items.find(x=>x.no===n);
+            cells32.push(it ? (it.obsY ? 'Y' : 'T') : '');
+          } else {
+            cells32.push('');
+          }
+        }
+      });
+      rows.push([
+        s.date, week, month, s.site||'', s.operator.nik, s.operator.nama, 'ACTIVE',
+        s.trainer.nik||'', s.trainer.nama, s.cat,
+        s.unit.code, s.unit.type, s.unit.cat, s.unit.class,
+        o.key, s.planHour, s.actHour, s.targetPoint,
+        ...cells32,
+        o.observe, o.mentoring,
+        '', '', '', // TOTAL EVENT, AVG OBSERVE POINT, AVG MENTORING POINT: formula-driven, left blank for Excel to auto-fill
+        '', '', '', // Req Score, Req Score Observ, Req Score Mentoring: formula-driven, left blank for Excel to auto-fill
+        o.finding, year
+      ]);
+    });
+  });
+  return {cols, rows};
+}
+
+function buildCSV(sessions){
+  const {cols, rows} = buildRows(sessions);
+  const lines = [cols.join(',')];
+  rows.forEach(row=> lines.push(row.map(csvEscape).join(',')));
+  return lines.join('\r\n');
+}
+
+function xlsEscape(v){
+  v = (v===undefined||v===null) ? '' : String(v);
+  return v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function buildXLSHtml(sessions){
+  const {cols, rows} = buildRows(sessions);
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Input Table</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
+  html += '<style>td{mso-number-format:"\\@";} th{background:#2E383F;color:#fff;font-weight:bold;}</style></head><body><table border="1">';
+  html += '<tr>' + cols.map(c=>'<th>'+xlsEscape(c)+'</th>').join('') + '</tr>';
+  rows.forEach(row=>{
+    html += '<tr>' + row.map(v=>'<td>'+xlsEscape(v)+'</td>').join('') + '</tr>';
+  });
+  html += '</table></body></html>';
+  return html;
+}
+
+function buildPrintReportHtml(sessions){
+  let body = '';
+  sessions.forEach((s, idx)=>{
+    const avgObs = Math.round(s.objectives.reduce((a,o)=>a+o.observe,0)/s.objectives.length);
+    const avgMen = Math.round(s.objectives.reduce((a,o)=>a+o.mentoring,0)/s.objectives.length);
+
+    // ---- 1) Filled-in checklist form, compact 2-column grid, titles only (no long uraian) ----
+    const formSection = s.objectives.map(o=>{
+      if(o.mode!=='checklist') {
+        return `<div class="rp-obj-block"><h3>${xlsEscape(objLabel(o.key))}</h3><p class="rp-manual"><i>Belum ada form checklist untuk kategori unit ini - dinilai skor manual: Observasi ${o.observe}, Mentoring ${o.mentoring}.</i></p></div>`;
+      }
+      const rows = o.items.map(it=>`<tr>
+          <td class="ctr">${it.no}</td>
+          <td>${xlsEscape(it.title)}</td>
+          <td class="ctr yt ${it.obsY?'yes':'no'}">${it.obsY?'&#10003;':'&#10007;'}</td>
+          <td class="ctr yt ${it.menY?'yes':'no'}">${it.menY?'&#10003;':'&#10007;'}</td>
+        </tr>`).join('');
+      return `<div class="rp-obj-block">
+        <h3>${xlsEscape(objLabel(o.key))} <span class="rp-obj-score">Obs ${o.observe} &middot; Ment ${o.mentoring}</span></h3>
+        <table class="rp-form">
+          <tr><th>No</th><th>Indikator Perilaku</th><th class="ctr">Obs</th><th class="ctr">Ment</th></tr>
+          ${rows}
+        </table>
+      </div>`;
+    }).join('');
+
+    // ---- 2) Gap Competency chart - Observasi score per objective only ----
+    const gapChart = s.objectives.map(o=>`
+      <div class="rp-gap-row">
+        <div class="rp-gap-label">${xlsEscape(objLabel(o.key))} <b>${o.observe}%</b></div>
+        <div class="rp-gap-bar-track">
+          <div class="rp-gap-fill observe" style="width:${o.observe}%;"></div>
+          <div class="rp-gap-target"></div>
+        </div>
+      </div>`).join('');
+
+    // ---- 3) Pain points: items still failing focus, worst first (using the standardized Finding label) ----
+    let painRows = [];
+    s.objectives.filter(o=>o.mode==='checklist').forEach(o=>{
+      o.items.forEach(it=>{
+        if(!it.obsY || !it.menY){
+          const severity = (!it.obsY?1:0) + (!it.menY?1:0);
+          const label = getFindingLabel(s.unit.cat, o.key, it.no, it.title);
+          painRows.push({objective:objLabel(o.key), no:it.no, title:label, obsY:it.obsY, menY:it.menY, severity});
+        }
+      });
+    });
+    painRows.sort((a,b)=> b.severity - a.severity);
+    const painSection = !painRows.length
+      ? '<p><i>Tidak ada pain point - seluruh poin checklist Y (Observasi maupun Mentoring).</i></p>'
+      : `<table class="rp-pain">
+          <tr><th>Objective</th><th>No</th><th>Finding</th><th class="ctr">Obs</th><th class="ctr">Ment</th></tr>
+          ${painRows.map(p=>`<tr class="${p.severity===2?'sev-high':'sev-mid'}">
+            <td>${xlsEscape(p.objective)}</td><td class="ctr">${p.no}</td><td>${xlsEscape(p.title)}</td>
+            <td class="ctr">${p.obsY?'Y':'T'}</td><td class="ctr">${p.menY?'Y':'T'}</td>
+          </tr>`).join('')}
+        </table>`;
+
+    // ---- 4) Finding / Rekomendasi per objective, one labeled line each (PDF report only) ----
+    const noteBlock = (field)=>{
+      const rows = s.objectives.filter(o=>o[field]).map(o=>
+        `<div class="rp-note-item"><b>${xlsEscape(objLabel(o.key))}:</b> ${xlsEscape(o[field])}</div>`).join('');
+      return rows;
+    };
+    const findingBlock = noteBlock('finding');
+    const rekomendasiBlock = noteBlock('rekomendasi');
+
+    body += `<div class="rp-page">
+      <h1>Laporan Hasil Observasi Mentoring</h1>
+      <table class="rp-info">
+        <tr><td><b>Operator</b></td><td>${xlsEscape(s.operator.nama)} (NIK ${xlsEscape(s.operator.nik)})</td>
+            <td><b>Tanggal</b></td><td>${xlsEscape(s.date)}</td></tr>
+        <tr><td><b>Site</b></td><td>${xlsEscape(s.site||'-')}</td>
+            <td><b>Trainer</b></td><td>${xlsEscape(s.trainer.nama)}</td></tr>
+        <tr><td><b>Unit</b></td><td>${xlsEscape(s.unit.code)} - ${xlsEscape(s.unit.type)}</td>
+            <td><b>Kategori</b></td><td>${xlsEscape(s.cat)}</td></tr>
+      </table>
+      <table class="rp-score">
+        <tr><th>Skor Observasi</th><th>Skor Mentoring</th></tr>
+        <tr><td class="big">${avgObs}</td><td class="big">${avgMen}</td></tr>
+      </table>
+
+      <h2>Form Checklist Mentoring (sesuai penilaian)</h2>
+      <div class="rp-obj-grid">${formSection}</div>
+
+      <div class="rp-lower-grid">
+        <div>
+          <h2>Gap Competency</h2>
+          <div class="rp-gap-wrap">${gapChart}</div>
+        </div>
+        <div>
+          <h2>Fokus Pain Point</h2>
+          ${painSection}
+          <h2 class="rp-note-h">Finding</h2>
+          <div class="rp-note-p">${findingBlock || '<i>Tidak ada finding - seluruh poin Y.</i>'}</div>
+          <h2 class="rp-note-h">Rekomendasi Trainer</h2>
+          <div class="rp-note-p">${rekomendasiBlock || '<i>Tidak ada rekomendasi tambahan dari trainer.</i>'}</div>
+        </div>
+      </div>
+      ${s.evidence && s.evidence.length ? `
+      <h2>Foto Evidence</h2>
+      <div class="rp-evi-wrap">${s.evidence.map(p=>`
+        <div class="rp-evi-item">
+          ${p.dataUrl ? `<img src="${p.dataUrl}" alt="evidence">` : `<div class="rp-evi-none">Foto tersimpan di pusat</div>`}
+          <div class="rp-evi-cap">${xlsEscape(fmtDateTime(new Date(p.takenAt)))} &middot; ${p.source==='camera' ? 'Live Kamera' : 'Terverifikasi EXIF'}</div>
+        </div>`).join('')}</div>` : ''}
+    </div>${idx < sessions.length-1 ? '<div style="page-break-after:always;"></div>' : ''}`;
+  });
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan Mentoring</title>
+  <style>
+    *{box-sizing:border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important;}
+    body{font-family:Arial,Helvetica,sans-serif; color:#111; margin:0; padding:0; font-size:10.5px;}
+    .rp-page{padding:20px;}
+    h1{font-size:16px; margin:0 0 10px;}
+    h2{font-size:12px; margin:10px 0 6px; border-bottom:1px solid #999; padding-bottom:2px;}
+    h3{font-size:10.5px; margin:0 0 3px; display:flex; justify-content:space-between; background:#eee; padding:3px 5px;}
+    table{border-collapse:collapse; width:100%; margin-bottom:6px;}
+    .rp-info td{padding:3px 6px; font-size:10px; border:1px solid #ccc;}
+    .rp-score{text-align:center;}
+    .rp-score th{background:#2E383F; color:#fff; padding:4px; font-size:10px;}
+    .rp-score td.big{font-size:20px; font-weight:800; padding:5px; border:1px solid #ccc;}
+    p, li{font-size:10px; line-height:1.4; margin:3px 0;}
+
+    /* checklist form: 2-column grid, compact */
+    .rp-obj-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+    .rp-obj-block{margin-bottom:4px; page-break-inside:avoid;}
+    .rp-obj-score{font-weight:normal; font-size:9px; color:#555;}
+    .rp-manual{padding:4px 5px; background:#f5f5f5;}
+    .rp-form th, .rp-form td{border:1px solid #ccc; padding:2px 4px; font-size:8.5px; vertical-align:top;}
+    .rp-form th{background:#3A444C; color:#fff; text-align:center;}
+    .rp-form .ctr{text-align:center; width:26px;}
+    .rp-form td.yt{font-weight:800; font-size:10px;}
+    .rp-form td.yt.yes{background:#DCF5E6; color:#1E7B44;}
+    .rp-form td.yt.no{background:#FCE2E2; color:#B3261E;}
+
+    /* lower section: gap chart left, pain points + finding right */
+    .rp-lower-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px;}
+
+    /* gap competency - single bar per objective (Observasi) */
+    .rp-gap-wrap{background:#F7F7F5; border-radius:6px; padding:10px;}
+    .rp-gap-row{margin-bottom:11px;}
+    .rp-gap-row:last-child{margin-bottom:0;}
+    .rp-gap-label{font-size:10.5px; font-weight:800; margin-bottom:4px; display:flex; justify-content:space-between;}
+    .rp-gap-label b{color:#4A6E5A;}
+    .rp-gap-bar-track{position:relative; height:14px; background:#E4E4E0; border-radius:7px; overflow:visible;}
+    .rp-gap-fill{position:absolute; left:0; top:0; bottom:0; height:14px; border-radius:7px; background-color:#4A6E5A; display:block;}
+    .rp-gap-target{position:absolute; left:100%; top:-2px; bottom:-2px; width:2px; background:#8A8A8A;}
+
+    /* pain points */
+    .rp-pain th, .rp-pain td{border:1px solid #ccc; padding:2px 4px; font-size:8px;}
+    .rp-pain th{background:#3A444C; color:#fff;}
+    .rp-pain tr.sev-high{background:#FCE2E2;}
+    .rp-pain tr.sev-mid{background:#FFF3D6;}
+    .rp-pain td.ctr{text-align:center;}
+
+    /* Finding / Rekomendasi - compact notes (PDF report only) */
+    .rp-note-h{font-size:10px; margin:5px 0 2px; border-bottom:1px solid #999; padding-bottom:1px;}
+    .rp-note-p{margin:0 0 2px;}
+    .rp-note-item{font-size:8.5px; line-height:1.3; margin:0 0 2px;}
+    .rp-note-item b{color:#333;}
+
+    /* Evidence photos (only rendered when the session has attached photos) */
+    .rp-evi-wrap{display:flex; gap:10px; margin-top:4px;}
+    .rp-evi-item{page-break-inside:avoid;}
+    .rp-evi-item img{width:170px; height:170px; object-fit:cover; border-radius:6px; border:1px solid #ccc; display:block;}
+    .rp-evi-cap{font-size:8px; color:#555; margin-top:3px; text-align:center; width:170px;}
+    .rp-evi-none{width:170px; height:60px; border:1px dashed #bbb; border-radius:6px; font-size:8px; color:#777; display:flex; align-items:center; justify-content:center;}
+
+    @media print{
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
+      .rp-gap-fill{ background-color:#4A6E5A !important; }
+      .rp-form td.yt.yes{ background-color:#DCF5E6 !important; }
+      .rp-form td.yt.no{ background-color:#FCE2E2 !important; }
+      .rp-score th{ background-color:#2E383F !important; }
+      .rp-form th{ background-color:#3A444C !important; }
+      .rp-pain th{ background-color:#3A444C !important; }
+    }
+  </style></head><body>${body}</body></html>`;
+}
+
+
+function fmtDateTime(d){ const pad=n=>String(n).padStart(2,'0'); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+
+
+/* ===================== state ===================== */
+const LS_CFG = 'mtg_dash_cfg_v1';
+const OBJ_COLOR_VAR = {'Productivity':'--o-prod','Safety Awareness':'--o-safe','Miss Operation':'--o-mach','Fuel Eff':'--o-fuel'};
+let ALL = [];            // sessions loaded (hydrated)
+let loadedRange = null;  // {from,to} loaded from server
+let demoMode = false;
+let sessPage = 0;
+const sortState = {};
+
+function $(id){ return document.getElementById(id); }
+function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+function getCfg(){ try{ return JSON.parse(localStorage.getItem(LS_CFG))||{}; }catch(e){ return {}; } }
+function setCfg(c){ try{ localStorage.setItem(LS_CFG, JSON.stringify(c)); }catch(e){} }
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function mean(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0; }
+function r0(v){ return Math.round(v); }
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+
+/* config from link: dashboard.html?sync=URL&key=KODE */
+(function(){
+  const p = new URLSearchParams(location.search);
+  if(p.get('sync')){ setCfg({url:p.get('sync'), key:p.get('key')||''}); history.replaceState(null,'',location.pathname); }
+})();
+
+/* ===================== data: hydrate compact sessions ===================== */
+function hydrate(s){
+  const ck = getChecklistForCat(s.unit && s.unit.cat);
+  s.objectives = (s.objectives||[]).map(o=>{
+    const out = {...o};
+    if(o.items && o.items.length && Array.isArray(o.items[0])){
+      out.items = o.items.map(([no,ob,me])=>{
+        const def = ck && ck[o.key] ? ck[o.key].find(x=>x.no===no) : null;
+        return {no, title: def ? def.title : ('Poin '+no), obsY: !!ob, menY: !!me};
+      });
+    }
+    return out;
+  });
+  s._obs = mean(s.objectives.map(o=>num(o.observe)));
+  s._men = mean(s.objectives.map(o=>num(o.mentoring)));
+  s._foto = (s.evidence||[]).length;
+  s._search = [s.operator.nama, s.operator.nik, s.unit.code, s.unit.type, s.trainer.nama].join(' ').toLowerCase();
+  return s;
+}
+
+/* ===================== evidence photos (fetched from the centre on demand, cached) ===================== */
+const photoCache = new Map();
+function getPhoto(fileId){
+  if(!fileId) return Promise.resolve(null);
+  if(photoCache.has(fileId)) return photoCache.get(fileId);
+  const cfg = getCfg();
+  const pr = fetch(cfg.url + (cfg.url.includes('?')?'&':'?') + 'action=photo&key='+encodeURIComponent(cfg.key||'')+'&id='+encodeURIComponent(fileId), {redirect:'follow'})
+    .then(r=>r.text()).then(t=>{ const j=JSON.parse(t); return j.ok ? j.dataUrl : null; }).catch(()=>{ photoCache.delete(fileId); return null; });
+  photoCache.set(fileId, pr);
+  return pr;
+}
+async function withPhotos(list){
+  const out = [];
+  for(let i=0;i<list.length;i+=4){
+    const part = await Promise.all(list.slice(i,i+4).map(async s=>({...s, evidence: await Promise.all((s.evidence||[]).map(async p=>({...p, dataUrl: p.dataUrl || (demoMode ? null : await getPhoto(p.fileId))})))})));
+    out.push(...part);
+  }
+  return out;
+}
+
+/* ===================== period ===================== */
+function period(){
+  const now = new Date(); const p = $('fPreset').value;
+  let from, to = iso(now);
+  if(p==='this_month') from = iso(new Date(now.getFullYear(), now.getMonth(), 1));
+  else if(p==='last_month'){ from = iso(new Date(now.getFullYear(), now.getMonth()-1, 1)); to = iso(new Date(now.getFullYear(), now.getMonth(), 0)); }
+  else if(p==='4w') from = iso(new Date(now.getTime()-27*864e5));
+  else if(p==='12w') from = iso(new Date(now.getTime()-83*864e5));
+  else if(p==='ytd') from = iso(new Date(now.getFullYear(),0,1));
+  else { from = $('fFrom').value || iso(new Date(now.getTime()-83*864e5)); to = $('fTo').value || to; }
+  return {from, to};
+}
+
+/* ===================== loading ===================== */
+async function load(force){
+  const cfg = getCfg();
+  if(demoMode){ render(); return; }
+  if(!cfg.url){ $('setupNotice').style.display='block'; $('srcLabel').textContent='Belum terhubung'; render(); return; }
+  $('setupNotice').style.display='none';
+  const {from,to} = period();
+  if(!force && loadedRange && loadedRange.from<=from && loadedRange.to>=to){ render(); return; }
+  $('srcLabel').innerHTML = '<span class="spin"></span> Memuat data...';
+  $('reloadBtn').disabled = true;
+  try{
+    const u = cfg.url + (cfg.url.includes('?')?'&':'?') + 'action=list&key='+encodeURIComponent(cfg.key||'')+'&from='+from+'&to='+to;
+    const r = await fetch(u, {redirect:'follow'});
+    const j = JSON.parse(await r.text());
+    if(!j.ok) throw new Error(j.error||'Ditolak');
+    ALL = j.sessions.map(hydrate);
+    loadedRange = {from,to};
+    $('srcLabel').textContent = (j.name||'Pusat data')+' · '+ALL.length+' sesi · diperbarui '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    $('srcLabel').textContent = 'Gagal memuat: '+(e.message && e.message.length<80 ? e.message : 'cek URL, kode akses, dan koneksi');
+  }finally{ $('reloadBtn').disabled = false; }
+  buildFilterOptions();
+  render();
+}
+
+/* ===================== filters ===================== */
+function fillSelect(el, values, allLabel){
+  const cur = el.value;
+  el.innerHTML = `<option value="">${allLabel}</option>` + values.map(v=>`<option>${esc(v)}</option>`).join('');
+  if(values.includes(cur)) el.value = cur;
+}
+function buildFilterOptions(){
+  const uniq = f => [...new Set(ALL.map(f).filter(Boolean))].sort();
+  fillSelect($('fSite'), uniq(s=>s.site), 'Semua site');
+  const site = $('fSite').value;
+  fillSelect($('fTrainer'), [...new Set(ALL.filter(s=>!site||s.site===site).map(s=>s.trainer.nama))].sort(), 'Semua trainer');
+  fillSelect($('fUnitCat'), uniq(s=>String(s.unit.cat||'').toUpperCase()), 'Semua kategori');
+}
+function filtered(){
+  const {from,to} = period();
+  const site=$('fSite').value, tr=$('fTrainer').value, uc=$('fUnitCat').value, cat=$('fCat').value, q=$('fSearch').value.trim().toLowerCase();
+  return ALL.filter(s=> s.date>=from && s.date<=to && (!site||s.site===site) && (!tr||s.trainer.nama===tr)
+    && (!uc||String(s.unit.cat||'').toUpperCase()===uc) && (!cat||s.cat===cat) && (!q||s._search.includes(q)));
+}
+['fSite','fTrainer','fUnitCat','fCat'].forEach(id=>$(id).addEventListener('change', ()=>{ if(id==='fSite') buildFilterOptions(); sessPage=0; render(); }));
+$('fSearch').addEventListener('input', ()=>{ sessPage=0; render(); });
+$('fPreset').addEventListener('change', ()=>{ $('fCustom').style.display = $('fPreset').value==='custom'?'flex':'none'; sessPage=0; load(false); });
+['fFrom','fTo'].forEach(id=>$(id).addEventListener('change', ()=>{ sessPage=0; load(false); }));
+$('reloadBtn').addEventListener('click', ()=>{ if(demoMode){ toast('Mode contoh: data tidak dari pusat'); } load(true); });
+
+/* ===================== aggregations ===================== */
+function weekStart(dateStr){ const d=new Date(dateStr+'T00:00:00'); const k=(d.getDay()+6)%7; d.setDate(d.getDate()-k); return iso(d); }
+function groupBy(list, keyFn){ const m=new Map(); list.forEach(x=>{ const k=keyFn(x); if(!m.has(k)) m.set(k,[]); m.get(k).push(x); }); return m; }
+function summarize(list){
+  return {
+    n:list.length,
+    ops:new Set(list.map(s=>s.operator.nik)).size,
+    plan:list.reduce((a,s)=>a+num(s.planHour),0),
+    act:list.reduce((a,s)=>a+num(s.actHour),0),
+    obs:mean(list.map(s=>s._obs)), men:mean(list.map(s=>s._men)),
+    last:list.reduce((a,s)=> s.date>a?s.date:a, '')
+  };
+}
+function daysSince(d){ if(!d) return null; return Math.floor((Date.now()-new Date(d+'T00:00:00'))/864e5); }
+
+/* ===================== render ===================== */
+function render(){
+  const list = filtered();
+  renderKpis(list);
+  renderWeekly(list);
+  renderTrend(list);
+  renderObj(list);
+  renderFindings(list);
+  renderTrainer(list);
+  renderSite(list);
+  renderOps(list);
+  renderSessions(list);
+}
+
+function renderKpis(list){
+  const s = summarize(list);
+  const trainers = new Set(list.map(x=>x.trainer.nama)).size;
+  const gain = s.men - s.obs;
+  const k = (l,v,sub)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${sub||'&nbsp;'}</div></div>`;
+  $('kpis').innerHTML =
+    k('Sesi mentoring', s.n.toLocaleString('id-ID'), s.n ? r0(list.filter(x=>x._foto).length/s.n*100)+'% dengan foto evidence' : 'Tidak ada data') +
+    k('Operator dimentoring', s.ops.toLocaleString('id-ID'), s.n ? (s.n/Math.max(s.ops,1)).toFixed(1)+' sesi per operator' : '') +
+    k('Trainer aktif', trainers, list.length ? new Set(list.map(x=>x.site)).size+' site' : '') +
+    k('Jam mentoring aktual', s.act.toLocaleString('id-ID',{maximumFractionDigits:1}), s.plan ? r0(s.act/s.plan*100)+'% dari plan '+s.plan.toLocaleString('id-ID',{maximumFractionDigits:1})+' jam' : '') +
+    k('Skor observasi', s.n ? r0(s.obs) : '-', 'Kondisi awal operator') +
+    k('Skor mentoring', s.n ? r0(s.men) : '-', s.n ? `<b class="${gain>=0?'up':'dn'}">${gain>=0?'+':''}${gain.toFixed(1)}</b> poin dari observasi` : '');
+}
+
+/* ---------- tooltip ---------- */
+const tip = $('tip');
+function showTip(e, html){ tip.innerHTML = html; tip.classList.add('show'); moveTip(e); }
+function moveTip(e){ const x=e.clientX+14, y=e.clientY+14; const w=tip.offsetWidth, h=tip.offsetHeight; tip.style.left=Math.min(x, innerWidth-w-8)+'px'; tip.style.top=Math.min(y, innerHeight-h-8)+'px'; }
+function hideTip(){ tip.classList.remove('show'); }
+function bindTips(root){
+  root.querySelectorAll('[data-tip]').forEach(el=>{
+    el.addEventListener('mouseenter', e=>showTip(e, el.dataset.tip));
+    el.addEventListener('mousemove', moveTip);
+    el.addEventListener('mouseleave', hideTip);
+  });
+}
+function weekLabel(ws){ const d=new Date(ws+'T00:00:00'); return d.getDate()+' '+MONTH_ABBR[d.getMonth()]; }
+function weeksInRange(){
+  const {from,to} = period(); const out=[]; let d=new Date(weekStart(from)+'T00:00:00'); const end=new Date(to+'T00:00:00');
+  while(d<=end && out.length<60){ out.push(iso(d)); d.setDate(d.getDate()+7); }
+  return out;
+}
+
+/* ---------- weekly sessions (bars) ---------- */
+function renderWeekly(list){
+  const wrap = $('chWeekly');
+  const weeks = weeksInRange();
+  const g = groupBy(list, s=>weekStart(s.date));
+  const data = weeks.map(w=>({w, n:(g.get(w)||[]).length, obs:mean((g.get(w)||[]).map(s=>s._obs)), men:mean((g.get(w)||[]).map(s=>s._men))}));
+  if(!list.length){ wrap.innerHTML='<div class="empty">Tidak ada data</div>'; return; }
+  const W = Math.max(wrap.clientWidth, 300), H = 220, pl=34, pr=8, pt=10, pb=26;
+  const max = Math.max(1, ...data.map(d=>d.n)); const nice = niceMax(max);
+  const bw = (W-pl-pr)/data.length; const barW = Math.max(3, Math.min(34, bw-2));
+  let svg = `<svg width="${W}" height="${H}" role="img" aria-label="Jumlah sesi per minggu">`;
+  for(let i=0;i<=4;i++){ const v=nice*i/4, y=pt+(H-pt-pb)*(1-i/4); svg+=`<line class="grid" x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}"/><text x="${pl-6}" y="${y+4}" text-anchor="end">${r0(v)}</text>`; }
+  const step = Math.ceil(data.length/8);
+  data.forEach((d,i)=>{
+    const x = pl + i*bw + (bw-barW)/2; const h = (H-pt-pb)*d.n/nice; const y = H-pb-h;
+    const r = Math.min(4, barW/2, h);
+    if(d.n) svg += `<path d="M${x},${H-pb} V${y+r} Q${x},${y} ${x+r},${y} H${x+barW-r} Q${x+barW},${y} ${x+barW},${y+r} V${H-pb} Z" fill="var(--obs)"/>`;
+    svg += `<rect x="${pl+i*bw}" y="${pt}" width="${bw}" height="${H-pt-pb}" fill="transparent" data-tip="<b>Minggu ${weekLabel(d.w)}</b><br>${d.n} sesi${d.n?`<br>Observasi ${r0(d.obs)} · Mentoring ${r0(d.men)}`:''}"/>`;
+    if(i%step===0) svg += `<text x="${pl+i*bw+bw/2}" y="${H-8}" text-anchor="middle">${weekLabel(d.w)}</text>`;
+  });
+  svg += `<line class="axis" x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}"/></svg>`;
+  wrap.innerHTML = svg; bindTips(wrap);
+}
+function niceMax(v){ const p=Math.pow(10,Math.floor(Math.log10(v))); const f=v/p; return (f<=1?1:f<=2?2:f<=5?5:10)*p; }
+
+/* ---------- weekly score trend (two lines, one axis 0-100) ---------- */
+function renderTrend(list){
+  const wrap = $('chTrend');
+  if(!list.length){ wrap.innerHTML='<div class="empty">Tidak ada data</div>'; return; }
+  const weeks = weeksInRange(); const g = groupBy(list, s=>weekStart(s.date));
+  const data = weeks.map(w=>{ const L=g.get(w)||[]; return {w, n:L.length, obs:L.length?mean(L.map(s=>s._obs)):null, men:L.length?mean(L.map(s=>s._men)):null}; });
+  const W = Math.max(wrap.clientWidth, 300), H = 194, pl=34, pr=40, pt=10, pb=26;
+  const vals = data.flatMap(d=>[d.obs,d.men]).filter(v=>v!=null);
+  const lo = Math.max(0, Math.floor((Math.min(...vals)-5)/10)*10);
+  const xs = i => pl + (data.length<=1 ? (W-pl-pr)/2 : i*(W-pl-pr)/(data.length-1));
+  const ys = v => pt + (H-pt-pb)*(1-(v-lo)/(100-lo));
+  let svg = `<svg width="${W}" height="${H}" role="img" aria-label="Skor rata-rata per minggu">`;
+  for(let i=0;i<=4;i++){ const v=lo+(100-lo)*i/4; svg+=`<line class="grid" x1="${pl}" x2="${W-pr}" y1="${ys(v)}" y2="${ys(v)}"/><text x="${pl-6}" y="${ys(v)+4}" text-anchor="end">${r0(v)}</text>`; }
+  const path = key => { let d='', pen=false; data.forEach((p,i)=>{ if(p[key]==null){ pen=false; return; } d += (pen?'L':'M')+xs(i)+','+ys(p[key])+' '; pen=true; }); return d; };
+  svg += `<path d="${path('obs')}" fill="none" stroke="var(--obs)" stroke-width="2" stroke-linejoin="round"/>`;
+  svg += `<path d="${path('men')}" fill="none" stroke="var(--men)" stroke-width="2" stroke-linejoin="round"/>`;
+  data.forEach((p,i)=>{ if(p.obs!=null){ svg+=`<circle cx="${xs(i)}" cy="${ys(p.obs)}" r="3" fill="var(--obs)"/><circle cx="${xs(i)}" cy="${ys(p.men)}" r="3" fill="var(--men)"/>`; } });
+  const last = [...data].reverse().find(p=>p.obs!=null);
+  if(last){ const li=data.indexOf(last);
+    let yo=ys(last.obs), ym=ys(last.men); if(Math.abs(yo-ym)<12){ if(ym<yo){ ym-=6; yo+=6; } else { ym+=6; yo-=6; } }
+    svg+=`<text x="${xs(li)+7}" y="${ym+4}" style="font-weight:700">${r0(last.men)}</text><text x="${xs(li)+7}" y="${yo+4}" style="font-weight:700">${r0(last.obs)}</text>`; }
+  const step = Math.ceil(data.length/8);
+  data.forEach((p,i)=>{ if(i%step===0) svg+=`<text x="${xs(i)}" y="${H-8}" text-anchor="middle">${weekLabel(p.w)}</text>`; });
+  const bw = data.length>1 ? (W-pl-pr)/(data.length-1) : W-pl-pr;
+  data.forEach((p,i)=>{ svg+=`<rect x="${xs(i)-bw/2}" y="${pt}" width="${bw}" height="${H-pt-pb}" fill="transparent" data-tip="<b>Minggu ${weekLabel(p.w)}</b><br>${p.n?`Observasi ${r0(p.obs)}<br>Mentoring ${r0(p.men)}<br>${p.n} sesi`:'Tidak ada sesi'}"/>`; });
+  svg += `</svg>`;
+  wrap.innerHTML = svg; bindTips(wrap);
+}
+
+/* ---------- objective gap (paired horizontal bars) ---------- */
+function renderObj(list){
+  const wrap = $('chObj');
+  if(!list.length){ wrap.innerHTML='<div class="empty">Tidak ada data</div>'; return; }
+  let html = '';
+  OBJECTIVES.forEach(obj=>{
+    const os = list.map(s=>s.objectives.find(o=>o.key===obj.key)).filter(Boolean);
+    const ob = mean(os.map(o=>num(o.observe))), me = mean(os.map(o=>num(o.mentoring)));
+    const bar = (v,c,l)=>`<div style="display:flex; align-items:center; gap:8px; margin-top:4px;" data-tip="<b>${obj.label}</b><br>${l}: ${v.toFixed(1)}<br>${os.length} sesi">
+        <div style="flex:1; position:relative; height:12px; background:var(--surface2); border-radius:0 4px 4px 0;">
+          <div style="position:absolute; left:0; top:0; bottom:0; width:${v}%; background:${c}; border-radius:0 4px 4px 0;"></div>
+        </div><span style="width:74px; font-size:12px; color:var(--ink2); font-variant-numeric:tabular-nums;">${l.slice(0,3)} <b style="color:var(--ink)">${r0(v)}</b></span></div>`;
+    html += `<div style="margin-bottom:14px;"><div style="font-weight:700; font-size:13px;"><span class="dot" style="background:var(${OBJ_COLOR_VAR[obj.key]})"></span>${obj.label}
+      <span style="float:right; font-size:12px; color:var(--ink3); font-weight:600;">gap ke target ${r0(100-me)}</span></div>
+      ${bar(ob,'var(--obs)','Observasi')}${bar(me,'var(--men)','Mentoring')}</div>`;
+  });
+  wrap.innerHTML = html; bindTips(wrap);
+}
+
+/* ---------- top findings ---------- */
+function findingStats(list){
+  const m = new Map();
+  list.forEach(s=> s.objectives.forEach(o=>{
+    if(o.mode!=='checklist' || !o.items) return;
+    o.items.forEach(it=>{
+      if(it.obsY) return;
+      const label = getFindingLabel(s.unit.cat, o.key, it.no, it.title);
+      const k = o.key+'|'+label;
+      if(!m.has(k)) m.set(k, {key:o.key, label, n:0, fixed:0, ops:new Set()});
+      const r = m.get(k); r.n++; if(it.menY) r.fixed++; r.ops.add(s.operator.nik);
+    });
+  }));
+  return [...m.values()].sort((a,b)=>b.n-a.n);
+}
+function renderFindings(list){
+  const rows = findingStats(list).slice(0,10);
+  if(!rows.length){ $('tbFindings').innerHTML='<div class="empty">Tidak ada temuan "T"</div>'; return; }
+  const max = rows[0].n;
+  $('tbFindings').innerHTML = `<table class="t"><tr><th>Temuan</th><th class="num">Kejadian</th><th class="num">Operator</th><th class="num">Membaik</th></tr>` +
+    rows.map(r=>{ const pct = r0(r.fixed/r.n*100);
+      return `<tr><td><span class="dot" style="background:var(${OBJ_COLOR_VAR[r.key]})" title="${esc(objLabel(r.key))}"></span>${esc(r.label)}<div style="font-size:11px; color:var(--ink3); margin-left:14px;">${esc(objLabel(r.key))}</div></td>
+      <td class="num"><div class="bar-cell">${r.n}<div class="mini"><span style="width:${r.n/max*100}%; background:var(--obs)"></span></div></div></td>
+      <td class="num">${r.ops.size}</td>
+      <td class="num"><span class="pill ${pct>=80?'good':pct>=50?'warn':'bad'}">${pct}%</span></td></tr>`; }).join('') + '</table>';
+}
+
+/* ---------- sortable tables ---------- */
+function sortableTable(id, cols, rows, defSort){
+  const st = sortState[id] || (sortState[id] = {...defSort});
+  const col = cols.find(c=>c.k===st.k) || cols[0];
+  rows.sort((a,b)=>{ const x=a[col.k], y=b[col.k]; const c = (typeof x==='number'&&typeof y==='number') ? x-y : String(x).localeCompare(String(y)); return st.dir*c; });
+  const head = cols.map(c=>`<th class="${c.num?'num':''}" data-k="${c.k}">${c.l}${st.k===c.k?(st.dir>0?' ▲':' ▼'):''}</th>`).join('');
+  const body = rows.map(r=>`<tr ${r._click?`class="click" data-click="${esc(r._click)}"`:''}>${cols.map(c=>`<td class="${c.num?'num':''}">${c.f?c.f(r):esc(r[c.k])}</td>`).join('')}</tr>`).join('');
+  $(id).innerHTML = rows.length ? `<table class="t"><tr>${head}</tr>${body}</table>` : '<div class="empty">Tidak ada data</div>';
+  $(id).querySelectorAll('th').forEach(th=>th.onclick=()=>{ const k=th.dataset.k; if(st.k===k) st.dir*=-1; else { st.k=k; st.dir = cols.find(c=>c.k===k).num ? -1 : 1; } render(); });
+}
+const scoreCell = (v, c) => `<div class="bar-cell">${r0(v)}<div class="mini"><span style="width:${v}%; background:${c}"></span></div></div>`;
+
+function renderTrainer(list){
+  const rows = [...groupBy(list, s=>s.trainer.nama+'|'+s.site).entries()].map(([k,L])=>{
+    const s = summarize(L); const [nama, site] = k.split('|');
+    const foto = L.length ? L.filter(x=>x._foto).length/L.length*100 : 0;
+    return {nama, site, n:s.n, ops:s.ops, foto, plan:s.plan, act:s.act, ach:s.plan?s.act/s.plan*100:0, obs:s.obs, men:s.men, gain:s.men-s.obs, last:s.last, idle:daysSince(s.last), _click:'trainer:'+nama};
+  });
+  sortableTable('tbTrainer', [
+    {k:'nama', l:'Trainer'}, {k:'site', l:'Site'}, {k:'n', l:'Sesi', num:1}, {k:'ops', l:'Operator', num:1},
+    {k:'act', l:'Jam aktual', num:1, f:r=>r.act.toFixed(1)}, {k:'ach', l:'% plan', num:1, f:r=>r0(r.ach)+'%'},
+    {k:'foto', l:'% foto', num:1, f:r=>`<span class="pill ${r.foto>=80?'good':r.foto>=50?'warn':'bad'}">${r0(r.foto)}%</span>`},
+    {k:'obs', l:'Observasi', num:1, f:r=>scoreCell(r.obs,'var(--obs)')}, {k:'men', l:'Mentoring', num:1, f:r=>scoreCell(r.men,'var(--men)')},
+    {k:'gain', l:'Kenaikan', num:1, f:r=>(r.gain>=0?'+':'')+r.gain.toFixed(1)},
+    {k:'idle', l:'Input terakhir', num:1, f:r=>`${esc(r.last)} <span class="pill ${r.idle>14?'bad':r.idle>7?'warn':'good'}">${r.idle} hr</span>`}
+  ], rows, {k:'n', dir:-1});
+  $('tbTrainer').querySelectorAll('tr.click').forEach(tr=>tr.onclick=()=>{ $('fTrainer').value = tr.dataset.click.slice(8); render(); window.scrollTo({top:0, behavior:'smooth'}); });
+}
+function renderSite(list){
+  const rows = [...groupBy(list, s=>s.site).entries()].map(([site,L])=>{ const s=summarize(L);
+    return {site, n:s.n, trainers:new Set(L.map(x=>x.trainer.nama)).size, ops:s.ops, act:s.act, obs:s.obs, men:s.men}; });
+  sortableTable('tbSite', [
+    {k:'site', l:'Site'}, {k:'n', l:'Sesi', num:1}, {k:'trainers', l:'Trainer', num:1}, {k:'ops', l:'Operator', num:1},
+    {k:'act', l:'Jam', num:1, f:r=>r.act.toFixed(1)},
+    {k:'obs', l:'Obs', num:1, f:r=>scoreCell(r.obs,'var(--obs)')}, {k:'men', l:'Ment', num:1, f:r=>scoreCell(r.men,'var(--men)')}
+  ], rows, {k:'n', dir:-1});
+}
+function renderOps(list){
+  const rows = [...groupBy(list, s=>String(s.operator.nik)).entries()].map(([nik,L])=>{
+    const s = summarize(L); const f = findingStats(L)[0];
+    return {nama:L[0].operator.nama, nik, site:L[0].site, n:s.n, obs:s.obs, men:s.men, top: f ? f.label : '-', last:s.last};
+  }).sort((a,b)=>a.obs-b.obs).slice(0,10);
+  sortableTable('tbOps', [
+    {k:'nama', l:'Operator', f:r=>`${esc(r.nama)}<div style="font-size:11px; color:var(--ink3)">${esc(r.nik)} · ${esc(r.site)}</div>`},
+    {k:'n', l:'Sesi', num:1}, {k:'obs', l:'Obs', num:1, f:r=>scoreCell(r.obs,'var(--obs)')},
+    {k:'top', l:'Temuan utama'}
+  ], rows, {k:'obs', dir:1});
+}
+
+/* ---------- sessions table ---------- */
+let currentList = [];
+function renderSessions(list){
+  currentList = list.slice().sort((a,b)=> b.date.localeCompare(a.date) || (b.updatedAt||0)-(a.updatedAt||0));
+  const per = 25, pages = Math.max(1, Math.ceil(currentList.length/per));
+  sessPage = Math.min(sessPage, pages-1);
+  const rows = currentList.slice(sessPage*per, sessPage*per+per);
+  if(!rows.length){ $('tbSessions').innerHTML='<div class="empty">Tidak ada data</div>'; return; }
+  $('tbSessions').innerHTML = `<table class="t"><tr><th>Tanggal</th><th>Site</th><th>Operator</th><th>Unit</th><th>Kat</th><th>Trainer</th><th class="num">Foto</th><th class="num">Obs</th><th class="num">Ment</th><th>Finding</th></tr>` +
+    rows.map(s=>`<tr class="click" data-id="${esc(s.id)}"><td>${esc(s.date)}</td><td>${esc(s.site)}</td>
+      <td>${esc(s.operator.nama)}<div style="font-size:11px; color:var(--ink3)">${esc(s.operator.nik)}</div></td>
+      <td>${esc(s.unit.code)}<div style="font-size:11px; color:var(--ink3)">${esc(s.unit.type)} · ${esc(s.unit.cat)}</div></td>
+      <td>${esc(s.cat)}</td><td>${esc(s.trainer.nama)}</td>
+      <td class="num">${s._foto ? '&#128247; '+s._foto : '<span style="color:var(--ink3)">-</span>'}</td>
+      <td class="num">${r0(s._obs)}</td><td class="num">${r0(s._men)}</td>
+      <td style="max-width:320px; font-size:12px; color:var(--ink2)">${esc(s.objectives.map(o=>o.finding).filter(Boolean).join(' | ').slice(0,140)) || '<span style="color:var(--ink3)">-</span>'}</td></tr>`).join('') + '</table>' +
+    `<div class="pager"><span>${sessPage*per+1}-${sessPage*per+rows.length} dari ${currentList.length}</span>
+      <button class="btn sm" id="pgPrev" ${sessPage?'':'disabled'}>&lsaquo; Sebelumnya</button>
+      <button class="btn sm" id="pgNext" ${sessPage<pages-1?'':'disabled'}>Berikutnya &rsaquo;</button></div>`;
+  $('pgPrev').onclick = ()=>{ sessPage--; renderSessions(list); };
+  $('pgNext').onclick = ()=>{ sessPage++; renderSessions(list); };
+  $('tbSessions').querySelectorAll('tr.click').forEach(tr=>tr.onclick=()=>openSession(tr.dataset.id));
+}
+
+/* ===================== modals ===================== */
+const modalBg = $('modalBg'), modal = $('modal');
+modalBg.addEventListener('click', e=>{ if(e.target===modalBg) modalBg.classList.remove('show'); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') modalBg.classList.remove('show'); });
+function openModal(html){ modal.innerHTML = html; modalBg.classList.add('show'); }
+function closeModal(){ modalBg.classList.remove('show'); }
+
+function openSession(id){
+  const s = ALL.find(x=>x.id===id); if(!s) return;
+  const blocks = s.objectives.map(o=>{
+    const items = o.items ? o.items.map(it=>`<div class="it"><span class="t">${it.no}. ${esc(getFindingLabel(s.unit.cat,o.key,it.no,it.title))}</span>
+      <span class="yt ${it.obsY?'y':'n'}">Obs ${it.obsY?'Y':'T'}</span><span class="yt ${it.menY?'y':'n'}">Ment ${it.menY?'Y':'T'}</span></div>`).join('') : '<div class="it">Skor manual</div>';
+    return `<div class="ck"><h4><span><span class="dot" style="background:var(${OBJ_COLOR_VAR[o.key]})"></span>${esc(objLabel(o.key))}</span><span style="font-weight:600; color:var(--ink2)">Obs ${o.observe} · Ment ${o.mentoring}</span></h4>${items}
+      ${o.rekomendasi?`<div style="font-size:12px; margin-top:6px;"><b>Rekomendasi:</b> ${esc(o.rekomendasi)}</div>`:''}</div>`;
+  }).join('');
+  openModal(`<h3>${esc(s.operator.nama)}</h3>
+    <div style="color:var(--ink3); margin-bottom:12px;">NIK ${esc(s.operator.nik)} · ${esc(s.operator.jab||'')} · ${esc(s.site)} · ${esc(s.date)} · Unit ${esc(s.unit.code)} (${esc(s.unit.type)}) · ${esc(s.cat)} · Trainer ${esc(s.trainer.nama)} · Jam ${esc(s.actHour)}/${esc(s.planHour)}</div>
+    <div class="ckgrid">${blocks}</div>
+    <h4 style="margin:16px 0 0; font-size:13px;">Foto evidence</h4>
+    <div class="evi-row" id="mEvi">${(s.evidence||[]).length ? s.evidence.map((p,i)=>`<div class="evi-box"><div class="img" id="mEvi${i}">${demoMode?'Foto contoh tidak tersedia':'<span class="spin"></span>'}</div>
+      <div class="cap">${esc(fmtDateTime(new Date(p.takenAt)))} · ${p.source==='camera'?'Live kamera':'Galeri (EXIF terverifikasi)'}${p.url?` · <a href="${esc(p.url)}" target="_blank" rel="noopener">Drive</a>`:''}</div></div>`).join('') : '<div style="font-size:12px; color:var(--ink3)">Tidak ada foto pada sesi ini.</div>'}</div>
+    <div class="row-btns"><button class="btn primary" id="mPdf">Cetak / PDF</button><button class="btn" id="mClose">Tutup</button></div>
+    <div style="font-size:11px; color:var(--ink3); margin-top:10px;">ID ${esc(s.id)} · perangkat ${esc(s.device||'-')} · diubah ${s.updatedAt?new Date(s.updatedAt).toLocaleString('id-ID'):'-'}</div>`);
+  $('mPdf').onclick = ()=>printSessions([s]);
+  if(!demoMode) (s.evidence||[]).forEach((p,i)=> getPhoto(p.fileId).then(d=>{ const el=$('mEvi'+i); if(el) el.innerHTML = d ? `<img src="${d}" alt="Foto evidence">` : 'Foto tidak dapat dimuat'; }));
+  $('mClose').onclick = closeModal;
+}
+
+async function printSessions(list){
+  const withEv = list.filter(s=>s._foto).length;
+  if(withEv && !demoMode) toast('Menyiapkan laporan & memuat '+withEv+' sesi berfoto...');
+  const full = await withPhotos(list);
+  const f = $('printFrame'); f.srcdoc = buildPrintReportHtml(full);
+  f.onload = ()=> setTimeout(()=>{ f.contentWindow.focus(); f.contentWindow.print(); }, 250);
+}
+function download(name, content, mime){
+  const blob = new Blob([content], {type:mime}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+function stamp(){ const {from,to}=period(); return from+'_sd_'+to; }
+
+/* multi-sheet Excel (SpreadsheetML 2003, opens in Excel & Google Sheets) */
+function xmlEsc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function buildWorkbook(sheets){
+  let x = '<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?>'+
+    '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'+
+    '<Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2E383F" ss:Pattern="Solid"/></Style></Styles>';
+  sheets.forEach(sh=>{
+    x += `<Worksheet ss:Name="${xmlEsc(sh.name.slice(0,31))}"><Table>`;
+    x += '<Row>'+sh.cols.map(c=>`<Cell ss:StyleID="h"><Data ss:Type="String">${xmlEsc(c)}</Data></Cell>`).join('')+'</Row>';
+    sh.rows.forEach(r=>{ x += '<Row>'+r.map(v=>{ const isN = typeof v==='number' && isFinite(v); return `<Cell><Data ss:Type="${isN?'Number':'String'}">${xmlEsc(isN? Math.round(v*10)/10 : v)}</Data></Cell>`; }).join('')+'</Row>'; });
+    x += '</Table></Worksheet>';
+  });
+  return x + '</Workbook>';
+}
+
+function openExport(){
+  const list = filtered();
+  openModal(`<h3>Ekspor laporan</h3><div style="color:var(--ink3); margin-bottom:14px;">Sesuai filter saat ini: ${list.length} sesi (${esc(period().from)} s/d ${esc(period().to)})</div>
+    <div class="row-btns" style="flex-direction:column; align-items:stretch;">
+      <button class="btn primary" id="exRekap">Excel rekap (per trainer, site, temuan, operator, sesi)</button>
+      <button class="btn" id="exInput">Excel "Input Table" (60 kolom, sama seperti sebelumnya)</button>
+      <button class="btn" id="exPdf">PDF laporan per operator (semua sesi terfilter)</button>
+      <button class="btn" id="exDash">Cetak dashboard ini</button>
+      <button class="btn" id="exImport">Impor file cadangan trainer (.json) ke pusat</button>
+      <button class="btn" id="exClose">Tutup</button>
+    </div>`);
+  $('exClose').onclick = closeModal;
+  $('exInput').onclick = ()=>{ if(!list.length) return toast('Tidak ada data'); download('Input_Table_'+stamp()+'.xls', buildXLSHtml(list), 'application/vnd.ms-excel'); };
+  $('exRekap').onclick = ()=>{
+    if(!list.length) return toast('Tidak ada data');
+    const tr = [...groupBy(list, s=>s.trainer.nama+'|'+s.site).entries()].map(([k,L])=>{ const s=summarize(L); const [n,site]=k.split('|'); return [n, site, s.n, s.ops, s.plan, s.act, s.plan?s.act/s.plan*100:0, L.filter(x=>x._foto).length/L.length*100, s.obs, s.men, s.men-s.obs, s.last]; });
+    const si = [...groupBy(list, s=>s.site).entries()].map(([site,L])=>{ const s=summarize(L); return [site, s.n, new Set(L.map(x=>x.trainer.nama)).size, s.ops, s.plan, s.act, s.obs, s.men]; });
+    const obj = OBJECTIVES.map(o=>{ const os=list.map(s=>s.objectives.find(x=>x.key===o.key)).filter(Boolean); return [o.label, mean(os.map(x=>num(x.observe))), mean(os.map(x=>num(x.mentoring)))]; });
+    const fi = findingStats(list).map(r=>[objLabel(r.key), r.label, r.n, r.ops.size, r.fixed, r.n?r.fixed/r.n*100:0]);
+    const op = [...groupBy(list, s=>String(s.operator.nik)).entries()].map(([nik,L])=>{ const s=summarize(L); const f=findingStats(L)[0]; return [nik, L[0].operator.nama, L[0].site, s.n, s.obs, s.men, f?f.label:'', s.last]; });
+    const se = list.map(s=>[s.date, s.site, s.trainer.nama, s.operator.nik, s.operator.nama, s.unit.code, s.unit.type, s.unit.cat, s.cat, num(s.planHour), num(s.actHour), s._obs, s._men,
+      ...OBJECTIVES.flatMap(o=>{ const x=s.objectives.find(y=>y.key===o.key); return [x?num(x.observe):'', x?num(x.mentoring):'']; }),
+      s.objectives.map(o=>o.finding).filter(Boolean).join(' | '), s.objectives.map(o=>o.rekomendasi?objLabel(o.key)+': '+o.rekomendasi:'').filter(Boolean).join(' | '),
+      s._foto, (s.evidence||[]).map(p=>p.url||'').filter(Boolean).join(' ')]);
+    download('Rekap_Mentoring_'+stamp()+'.xls', buildWorkbook([
+      {name:'Rekap Trainer', cols:['Trainer','Site','Sesi','Operator','Jam Plan','Jam Aktual','% Plan','% Sesi Berfoto','Skor Observasi','Skor Mentoring','Kenaikan','Input Terakhir'], rows:tr},
+      {name:'Rekap Site', cols:['Site','Sesi','Trainer','Operator','Jam Plan','Jam Aktual','Skor Observasi','Skor Mentoring'], rows:si},
+      {name:'Per Objective', cols:['Objective','Skor Observasi','Skor Mentoring'], rows:obj},
+      {name:'Temuan', cols:['Objective','Temuan','Kejadian','Operator','Membaik setelah mentoring','% Membaik'], rows:fi},
+      {name:'Per Operator', cols:['NIK','Operator','Site','Sesi','Skor Observasi','Skor Mentoring','Temuan Utama','Terakhir'], rows:op},
+      {name:'Data Sesi', cols:['Tanggal','Site','Trainer','NIK','Operator','Unit','Tipe','Kat Unit','Mentoring','Plan','Aktual','Obs','Ment',
+        ...OBJECTIVES.flatMap(o=>[o.label+' Obs', o.label+' Ment']),'Finding','Rekomendasi','Jumlah Foto','Link Foto (Drive)'], rows:se}
+    ]), 'application/vnd.ms-excel');
+  };
+  $('exPdf').onclick = ()=>{ if(!list.length) return toast('Tidak ada data'); if(list.length>150 && !confirm(list.length+' sesi akan dicetak. Lanjutkan?')) return; printSessions(currentList); };
+  $('exDash').onclick = ()=>{ closeModal(); setTimeout(()=>window.print(), 200); };
+  $('exImport').onclick = ()=> $('importFile').click();
+}
+$('exportBtn').onclick = openExport;
+
+/* import a trainer's backup file (from the app's Pengaturan > Simpan cadangan) and push it to the centre */
+$('importFile').addEventListener('change', async e=>{
+  const files = [...e.target.files]; e.target.value='';
+  const cfg = getCfg();
+  if(!cfg.url || demoMode) return toast('Hubungkan ke pusat data dulu (Pengaturan)');
+  let sessions = [];
+  for(const f of files){ try{ const d=JSON.parse(await f.text()); if(d.app==='mentoring') sessions = sessions.concat(d.queue||[], d.sent||[]); }catch(err){} }
+  if(!sessions.length) return toast('File tidak berisi data mentoring');
+  const compact = s=>({...s, evidence:(s.evidence||[]).map(p=>({pid:p.pid, takenAt:p.takenAt, source:p.source, fileName:p.fileName||'', data:p.dataUrl||p.data||undefined})), objectives:s.objectives.map(o=>({key:o.key, mode:o.mode, observe:o.observe, mentoring:o.mentoring, finding:o.finding||'', rekomendasi:o.rekomendasi||'',
+    items:o.items? o.items.map(i=>Array.isArray(i)?i:[i.no, i.obsY?1:0, i.menY?1:0]) : undefined})), updatedAt:s.updatedAt||s.savedAt});
+  let written = 0;
+  try{
+    for(let i=0;i<sessions.length;i+=5){
+      const r = await fetch(cfg.url, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action:'push', key:cfg.key, device:'dashboard-import', appVer:'dash', sessions:sessions.slice(i,i+5).map(compact)})});
+      const j = JSON.parse(await r.text()); if(!j.ok) throw new Error(j.error); written += j.written||0;
+    }
+    toast(sessions.length+' sesi diperiksa, '+written+' baru/diperbarui di pusat'); closeModal(); load(true);
+  }catch(err){ toast('Gagal impor: '+(err.message||'koneksi')); }
+});
+
+function openSettings(){
+  const c = getCfg();
+  openModal(`<h3>Pengaturan pusat data</h3><div style="color:var(--ink3); margin-bottom:14px;">URL web app Google Apps Script (berakhiran /exec) dan kode akses yang sama dengan di Code.gs.</div>
+    <div class="field"><label>URL web app</label><input id="sUrl" value="${esc(c.url||'')}" placeholder="https://script.google.com/macros/s/.../exec"></div>
+    <div class="field"><label>Kode akses</label><input id="sKey" value="${esc(c.key||'')}"></div>
+    <div class="row-btns"><button class="btn primary" id="sSave">Simpan & muat</button><button class="btn" id="sLink">Salin link untuk trainer</button><button class="btn" id="sDemo">${demoMode?'Keluar dari data contoh':'Lihat data contoh'}</button><button class="btn" id="sTheme">Tema terang/gelap</button><button class="btn" id="sClose">Tutup</button></div>
+    <div id="sMsg" style="font-size:12px; color:var(--ink3); margin-top:10px;"></div>`);
+  $('sClose').onclick = closeModal;
+  $('sSave').onclick = ()=>{ setCfg({url:$('sUrl').value.trim(), key:$('sKey').value.trim()}); demoMode=false; loadedRange=null; closeModal(); load(true); };
+  $('sLink').onclick = async ()=>{
+    const url=$('sUrl').value.trim(), key=$('sKey').value.trim(); if(!url) return $('sMsg').textContent='Isi URL dulu.';
+    const appUrl = new URL('index.html', location.href).href.split('?')[0];
+    const link = appUrl+'?sync='+encodeURIComponent(url)+'&key='+encodeURIComponent(key);
+    try{ await navigator.clipboard.writeText(link); $('sMsg').textContent='Link disalin. Kirim ke trainer: sekali dibuka, aplikasi otomatis terhubung.'; }
+    catch(e){ $('sMsg').textContent = link; }
+  };
+  $('sDemo').onclick = ()=>{ closeModal(); if(demoMode){ demoMode=false; ALL=[]; loadedRange=null; load(true); } else startDemo(); };
+  $('sTheme').onclick = ()=>{ const d=document.documentElement; const cur = d.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); d.dataset.theme = cur==='dark'?'light':'dark'; render(); };
+}
+$('settingsBtn').onclick = openSettings;
+$('openSettingsLink').onclick = e=>{ e.preventDefault(); openSettings(); };
+$('demoLink').onclick = e=>{ e.preventDefault(); startDemo(); };
+
+/* ===================== demo data (fictional names) ===================== */
+function startDemo(){
+  demoMode = true; $('setupNotice').style.display='none';
+  let seed = 7; const rnd = ()=>{ seed = (seed*16807)%2147483647; return seed/2147483647; };
+  const pick = a => a[Math.floor(rnd()*a.length)];
+  const sites = ['ACP','BCP','KCP'];
+  const first = ['Andi','Budi','Candra','Dedi','Eko','Fajar','Gilang','Hendra','Irfan','Joko','Kurnia','Lukman','Made','Nanda','Oki','Putra','Rizal','Sandi','Taufik','Umar','Wahyu','Yusuf'];
+  const last = ['Pratama','Saputra','Hidayat','Nugroho','Santoso','Wijaya','Kurniawan','Setiawan','Gunawan','Firmansyah'];
+  const trainers = sites.flatMap((site,i)=>[0,1,2].map(j=>({nik:900100+i*10+j, nama:'Trainer '+String.fromCharCode(65+i*3+j)+' (contoh)', site})));
+  const cats = [['Hauler','HD785','HAULER'],['Hauler','DT-40T','HAULER'],['Digger','PC2000','DIGGER'],['Dozer','D375A','DOZER'],['Grader','GD825','GRADER'],['Drill','DM45','DRILL']];
+  const ops = sites.flatMap(site=>Array.from({length:40},(_,i)=>({nik:700000+sites.indexOf(site)*1000+i, nama:pick(first)+' '+pick(last), jab:'Operator', site})));
+  const skill = {}; ops.forEach(o=>skill[o.nik]=0.45+rnd()*0.45);
+  const out = []; const now = Date.now();
+  for(let i=0;i<520;i++){
+    const t = pick(trainers); const op = pick(ops.filter(o=>o.site===t.site)); const c = pick(cats);
+    const d = new Date(now - Math.floor(rnd()*110)*864e5); if(d.getDay()===0) d.setDate(d.getDate()-1);
+    const ck = getChecklistForCat(c[0]);
+    const objectives = OBJECTIVES.map(o=>{
+      const items = ck[o.key].map(it=>{ const ob = rnd() < skill[op.nik]+ (o.key==='Fuel Eff'?-0.1:0.05); const me = ob || rnd()<0.72; return {no:it.no, title:it.title, obsY:ob, menY:me}; });
+      const oy = items.filter(x=>x.obsY).length, my = items.filter(x=>x.menY).length;
+      const labs = [...new Set(items.filter(x=>!x.obsY||!x.menY).map(x=>getFindingLabel(c[0],o.key,x.no,x.title)))];
+      return {key:o.key, mode:'checklist', items, observe:Math.round(oy/8*100), mentoring:Math.round(my/8*100), finding:labs.join(', '), rekomendasi: labs.length && rnd()<0.4 ? 'Ulangi pengarahan pada poin '+labs[0].toLowerCase() : ''};
+    });
+    out.push(hydrate({id:'demo_'+i, site:t.site, date:iso(d), trainer:t, operator:op, cat:rnd()<0.8?'OFM':'ICM', planHour:'2', actHour:String((1+rnd()*1.5).toFixed(1)),
+      targetPoint:100, unit:{code:c[2].slice(0,2)+(4000+Math.floor(rnd()*80)), type:c[1], cat:c[2], class:'PRIME'}, objectives, updatedAt:d.getTime(), device:'demo',
+      evidence: rnd()<0.75 ? Array.from({length: rnd()<0.5?2:1}, (_,k)=>({pid:'demo_p'+i+'_'+k, takenAt:new Date(d.getTime()+9*36e5).toISOString(), source: rnd()<0.8?'camera':'gallery-verified'})) : []}));
+  }
+  ALL = out; loadedRange = null;
+  $('srcLabel').innerHTML = '<b style="color:var(--brand-deep)">DATA CONTOH</b> · nama fiktif, bukan data asli · buka Pengaturan untuk menghubungkan pusat data';
+  buildFilterOptions(); render();
+}
+
+/* ===================== boot ===================== */
+let rT; window.addEventListener('resize', ()=>{ clearTimeout(rT); rT=setTimeout(render, 150); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+buildFilterOptions();
+if(!getCfg().url) startDemo(); else load(true);
+if(!getCfg().url) $('setupNotice').style.display='block';
+</script>
+</body>
+</html>
