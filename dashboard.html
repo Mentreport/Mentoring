@@ -454,6 +454,19 @@ function buildPrintReportHtml(sessions){
           ${p.dataUrl ? `<img src="${p.dataUrl}" alt="evidence">` : `<div class="rp-evi-none">Foto tersimpan di pusat</div>`}
           <div class="rp-evi-cap">${xlsEscape(fmtDateTime(new Date(p.takenAt)))} &middot; ${p.source==='camera' ? 'Live Kamera' : 'Terverifikasi EXIF'}</div>
         </div>`).join('')}</div>` : ''}
+      <h2 class="rp-sign-h2">Mentoring Sign</h2>
+      <div class="rp-sign-badge">
+        <div class="rp-sign-left">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="#E0761C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="rp-sign-div"></div>
+        <div class="rp-sign-right">
+          <div class="rp-sign-sub">Di mentoring oleh</div>
+          <div class="rp-sign-role">Trainer</div>
+          <div class="rp-sign-name">${xlsEscape(s.trainer.nama)}</div>
+          <div class="rp-sign-nik">NIK ${xlsEscape(s.trainer.nik)}</div>
+          <div class="rp-sign-date">${xlsEscape(fmtDateTime(new Date(s.savedAt)))}</div>
+        </div>
     </div>${idx < sessions.length-1 ? '<div style="page-break-after:always;"></div>' : ''}`;
   });
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan Mentoring</title>
@@ -515,6 +528,25 @@ function buildPrintReportHtml(sessions){
     .rp-evi-item img{width:170px; height:170px; object-fit:cover; border-radius:6px; border:1px solid #ccc; display:block;}
     .rp-evi-cap{font-size:8px; color:#555; margin-top:3px; text-align:center; width:170px;}
     .rp-evi-none{width:170px; height:60px; border:1px dashed #bbb; border-radius:6px; font-size:8px; color:#777; display:flex; align-items:center; justify-content:center;}
+
+    /* Mentoring sign / trainer sign-off badge (PDF report only) - left-aligned */
+    .rp-sign-h2{margin-top:14px;}
+    .rp-sign-badge{
+      position:relative; display:inline-flex; align-items:stretch; width:300px; min-height:78px;
+      background:#fff; border:2px solid #1B2A52; border-radius:39px; overflow:hidden;
+      page-break-inside:avoid; padding:0 20px 0 26px;
+    }
+    .rp-sign-left{
+      flex-shrink:0; display:flex; align-items:center; justify-content:center; padding-right:18px;
+    }
+    .rp-sign-left svg{width:34px; height:34px;}
+    .rp-sign-div{width:1.5px; background:#1B2A52; opacity:.35; margin:14px 0;}
+    .rp-sign-right{flex:1; padding:10px 0 10px 16px; display:flex; flex-direction:column; justify-content:center;}
+    .rp-sign-sub{font-size:9px; color:#6E93C7; margin-bottom:1px;}
+    .rp-sign-role{font-size:14px; font-weight:800; color:#1B2A52;}
+    .rp-sign-name{font-size:15px; font-weight:900; color:#1B2A52; margin-top:5px;}
+    .rp-sign-nik{font-size:9px; color:#6E93C7; margin-top:2px;}
+    .rp-sign-date{font-size:9px; color:#6E93C7; margin-top:1px;}
 
     @media print{
       * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
@@ -1018,7 +1050,7 @@ function openSettings(){
   openModal(`<h3>Pengaturan pusat data</h3><div style="color:var(--ink3); margin-bottom:14px;">URL web app Google Apps Script (berakhiran /exec) dan kode akses yang sama dengan di Code.gs.</div>
     <div class="field"><label>URL web app</label><input id="sUrl" value="${esc(c.url||'')}" placeholder="https://script.google.com/macros/s/.../exec"></div>
     <div class="field"><label>Kode akses</label><input id="sKey" value="${esc(c.key||'')}"></div>
-    <div class="row-btns"><button class="btn primary" id="sSave">Simpan & muat</button><button class="btn" id="sLink">Salin link untuk trainer</button><button class="btn" id="sDemo">${demoMode?'Keluar dari data contoh':'Lihat data contoh'}</button><button class="btn" id="sTheme">Tema terang/gelap</button><button class="btn" id="sClose">Tutup</button></div>
+    <div class="row-btns"><button class="btn primary" id="sSave">Simpan & muat</button><button class="btn" id="sLink">Salin link untuk trainer</button><button class="btn" id="sMaster">Cek data master</button><button class="btn" id="sDemo">${demoMode?'Keluar dari data contoh':'Lihat data contoh'}</button><button class="btn" id="sTheme">Tema terang/gelap</button><button class="btn" id="sClose">Tutup</button></div>
     <div id="sMsg" style="font-size:12px; color:var(--ink3); margin-top:10px;"></div>`);
   $('sClose').onclick = closeModal;
   $('sSave').onclick = ()=>{ setCfg({url:$('sUrl').value.trim(), key:$('sKey').value.trim()}); demoMode=false; loadedRange=null; closeModal(); load(true); };
@@ -1028,6 +1060,20 @@ function openSettings(){
     const link = appUrl+'?sync='+encodeURIComponent(url)+'&key='+encodeURIComponent(key);
     try{ await navigator.clipboard.writeText(link); $('sMsg').textContent='Link disalin. Kirim ke trainer: sekali dibuka, aplikasi otomatis terhubung.'; }
     catch(e){ $('sMsg').textContent = link; }
+  };
+  $('sMaster').onclick = async ()=>{
+    const c = getCfg(); if(!c.url) return $('sMsg').textContent='Simpan URL dulu.';
+    $('sMsg').innerHTML = '<span class="spin"></span> Membaca sheet "Dbase ..." di pusat...';
+    try{
+      const r = await fetch(c.url+(c.url.includes('?')?'&':'?')+'action=master&key='+encodeURIComponent(c.key||''), {redirect:'follow'});
+      const j = JSON.parse(await r.text());
+      if(!j.ok) throw new Error(j.error);
+      const rows = Object.entries(j.perSite||{}).map(([site,n])=>{ const used = (j.master||{}).sites ? j.master.sites.includes(site) : false;
+        return `<tr><td>${esc(site)}</td><td class="num">${n.trainers}</td><td class="num">${n.ops}</td><td class="num">${n.units}</td><td>${used?'<span class="pill good">Dipakai</span>':'<span class="pill bad">Belum lengkap</span>'}</td></tr>`; }).join('');
+      $('sMsg').innerHTML = (j.empty ? '<b>Belum ada sheet "Dbase &lt;SITE&gt;".</b> Aplikasi trainer memakai data bawaan.<br>' : '') +
+        (rows ? `<table class="t" style="margin-top:6px;"><tr><th>Sheet site</th><th class="num">Trainer</th><th class="num">Operator aktif</th><th class="num">Unit</th><th>Status</th></tr>${rows}</table>` : '') +
+        ((j.warnings||[]).length ? `<div style="margin-top:8px; color:var(--warn)"><b>Perlu dicek:</b><br>${j.warnings.slice(0,15).map(esc).join('<br>')}${j.warnings.length>15?'<br>... dan '+(j.warnings.length-15)+' lainnya':''}</div>` : '<div style="margin-top:8px; color:var(--good)">Tidak ada masalah ditemukan.</div>');
+    }catch(e){ $('sMsg').textContent = 'Gagal membaca master: '+(e.message||'koneksi'); }
   };
   $('sDemo').onclick = ()=>{ closeModal(); if(demoMode){ demoMode=false; ALL=[]; loadedRange=null; load(true); } else startDemo(); };
   $('sTheme').onclick = ()=>{ const d=document.documentElement; const cur = d.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); d.dataset.theme = cur==='dark'?'light':'dark'; render(); };

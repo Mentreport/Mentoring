@@ -1,5 +1,5 @@
 // Offline cache untuk aplikasi Mentoring. Ganti VERSION setiap kali index.html diperbarui.
-const VERSION = 'mentoring-v2.1.0';
+const VERSION = 'mentoring-v2.2.1';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
